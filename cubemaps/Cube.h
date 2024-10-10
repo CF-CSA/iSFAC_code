@@ -51,6 +51,8 @@ public:
     ~Cube() = default;
     
     double mapValue(const Vec3&);
+    size_t gridIndex(int ix, int iy, int iz);
+    double mapValue(int ix, int iy, int iz);
     
 
 };

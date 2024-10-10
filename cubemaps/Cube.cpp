@@ -16,6 +16,7 @@
 #include <fstream>
 #include <iostream>
 #include <cmath>
+#include <cassert>
 
 Cube::Cube(const std::string& filename, short verbosity) :
 verbosity_(verbosity) {
@@ -82,9 +83,66 @@ void Cube::readMap(const std::string& fname) {
     }
 }
 
+size_t Cube::gridIndex(int ix, int iy, int iz) {
+    size_t idx = iz + Vz_*(iy + Vy_*ix);
+    return idx;
+}
+
+double Cube::mapValue(int ix, int iy, int iz) {
+    const size_t idx = gridIndex(ix, iy, iz);
+    assert (idx >= 0);
+    assert (idx < Vx_*Vy_*Vz_);
+    double val = gridvalues_[idx];
+    return val;
+}
+
 /**
  * simple interpolation of grid to get a value
  * coordinates outside grid throws exception (runtime_error)
+For interpolating the value at a point \((x, y, z)\) within a 3D cube defined by the eight corner points \((0, 0, 0)\), \((0, 0, 1)\), \((0, 1, 0)\), \((0, 1, 1)\), \((1, 0, 0)\), \((1, 0, 1)\), \((1, 1, 0)\), and \((1, 1, 1)\), a suitable approach is **trilinear interpolation**.
+
+### Trilinear Interpolation Algorithm:
+
+1. **Define the values at the eight corners**:
+   Let \( V_{000}, V_{001}, V_{010}, V_{011}, V_{100}, V_{101}, V_{110}, V_{111} \) be the values at the eight corner points:
+   - \( V_{000} \) at \( (0, 0, 0) \)
+   - \( V_{001} \) at \( (0, 0, 1) \)
+   - \( V_{010} \) at \( (0, 1, 0) \)
+   - \( V_{011} \) at \( (0, 1, 1) \)
+   - \( V_{100} \) at \( (1, 0, 0) \)
+   - \( V_{101} \) at \( (1, 0, 1) \)
+   - \( V_{110} \) at \( (1, 1, 0) \)
+   - \( V_{111} \) at \( (1, 1, 1) \)
+
+2. **Step-by-step interpolation**:
+   First, interpolate along the x-axis at the four pairs of points at \((y,z)\) locations:
+   V_x(y,z) = (1 - x) \cdot V_{0yz} + x \cdot V_{1yz}
+   - For \((y, z) = (0, 0)\), interpolate between \(V_{000}\) and \(V_{100}\):
+     V_x(0, 0) = (1 - x) \cdot V_{000} + x \cdot V_{100}
+   - For \((y, z) = (0, 1)\), interpolate between \(V_{001}\) and \(V_{101}\):
+     V_x(0, 1) = (1 - x) \cdot V_{001} + x \cdot V_{101}
+   - For \((y, z) = (1, 0)\), interpolate between \(V_{010}\) and \(V_{110}\):
+     V_x(1, 0) = (1 - x) \cdot V_{010} + x \cdot V_{110}
+   - For \((y, z) = (1, 1)\), interpolate between \(V_{011}\) and \(V_{111}\):
+     V_x(1, 1) = (1 - x) \cdot V_{011} + x \cdot V_{111}
+
+3. **Interpolate along the y-axis**:
+   Now, interpolate along the y-axis between the results from step 2:
+   V_{xy}(z) = (1 - y) \cdot V_x(0, z) + y \cdot V_x(1, z)
+   - For \(z = 0\):
+     V_{xy}(0) = (1 - y) \cdot V_x(0, 0) + y \cdot V_x(1, 0)
+   - For \(z = 1\):
+     V_{xy}(1) = (1 - y) \cdot V_x(0, 1) + y \cdot V_x(1, 1)
+
+4. **Interpolate along the z-axis**:
+   Finally, interpolate along the z-axis between the results from step 3:
+   V_{xyz} = (1 - z) \cdot V_{xy}(0) + z \cdot V_{xy}(1)
+
+### Result:
+The final value \(V_{xyz}\) at the point \((x, y, z)\) is the result of trilinear interpolation.
+
+Would you like me to provide an example calculation or help implement this in code?
+
  * @param 
  * @return 
  */
@@ -95,14 +153,33 @@ double Cube::mapValue(const Vec3& pos) {
     double pos_y = ey_*(pos - origin_);
     double pos_z = ez_*(pos - origin_);
     
-    int idx_x = pos_x / std::sqrt(ex_.lengthsq());
-    int idx_y = pos_y / std::sqrt(ey_.lengthsq());
-    int idx_z = pos_x / std::sqrt(ez_.lengthsq());
+    // fractional coordinates 
+    const double fx = pos_x / std::sqrt(ex_.lengthsq());
+    const double fy = pos_y / std::sqrt(ey_.lengthsq());
+    const double fz = pos_x / std::sqrt(ez_.lengthsq());
     
-    if (idx_x < 0 || idx_x >= Vx_ || idx_y < 0 || idx_y >= Vy_ || idx_z < 0 || idx_z > Vz_) {
+    // low left index
+    int ix = fx;
+    int iy = fy;
+    int iz = fz;
+    
+    if (ix < 0 || ix >= Vx_ || iy < 0 || iy >= Vy_ || iz < 0 || iz > Vz_) {
         if (verbosity_ > 1) {
             std::cout << "*** Error: coordinate " << " out of range\n";
         }
         throw std::logic_error("Index out of range");
     }
+    
+    const double Vx00 = (1-fx)*mapValue(ix, iy, iz)     + fx*mapValue(ix+1, iy, iz);
+    const double Vx01 = (1-fx)*mapValue(ix, iy, iz+1)   + fx*mapValue(ix+1, iy, iz+1);
+    const double Vx10 = (1-fx)*mapValue(ix, iy+1, iz)   + fx*mapValue(ix+1,iy+1, iz);
+    const double Vx11 = (1-fx)*mapValue(ix, iy+1, iz+1) + fx*mapValue(ix+1, iy+1, iz+1);
+    
+    const double Vxy0 = (1-fy)*Vx00 + fy*Vx10;
+    const double Vxy1 = (1-fy)*Vx01 + fy*Vx11;
+    
+    const double Vxyz = (1-fz)*Vxy0 + fz*Vxy1;
+    
+    return Vxyz;
 }
+
