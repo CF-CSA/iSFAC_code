@@ -47,3 +47,11 @@ Vec3 operator+ (const Vec3& v1, const Vec3& v2) {
     return v;
 }
 
+Vec3 operator- (const Vec3& v1, const Vec3& v2) {
+    Vec3 v(v1);
+    v.x_ -= v2.x_;
+    v.y_ -= v2.y_;
+    v.z_ -= v2.z_;
+    
+    return v;
+}

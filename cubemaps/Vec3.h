@@ -25,6 +25,7 @@ public:
     friend double operator*(const Vec3& v1, const Vec3& v2);
     friend Vec3 operator* (const double s, const Vec3& v);
     friend Vec3 operator+ (const Vec3& v1, const Vec3& v2);
+    friend Vec3 operator- (const Vec3& v1, const Vec3& v2);
     friend Vec3 cross( const Vec3& v1, const Vec3& v2);
 
 };

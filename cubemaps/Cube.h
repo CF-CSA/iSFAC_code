@@ -18,14 +18,23 @@
 #include "Vec3.h"
 #include <vector>
 #include <string>
+
+/**
+ *Cube map format description from 
+ * https://paulbourke.net/dataformats/cube/
+ * -> Z is the fast changing direction, X is slowest, i.e.
+ * idx = iz + Vz_*(iy + Vy_*ix)
+ * positioning:
+ * xyz = origin + ix*ex_ + iy*ey_ + iz* ez_;
+ */
 class Cube {
 private:
     //! two header lines
     std::string h1_, h2_;
-    //! origin
-    int numAtoms_;
     //! number of atoms
-    float orgx_, orgy_, orgz_;
+    int numAtoms_;
+    //! origin
+    Vec3 origin_;
     //! number of voxels in each direction
     int Vx_, Vy_, Vz_;
     //! directions of grid
@@ -40,6 +49,8 @@ public:
     Cube() = default;
     Cube(const std::string& filename, short verbosity_);
     ~Cube() = default;
+    
+    double mapValue(const Vec3&);
     
 
 };

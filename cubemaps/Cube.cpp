@@ -15,6 +15,7 @@
 #include "myExceptions.h"
 #include <fstream>
 #include <iostream>
+#include <cmath>
 
 Cube::Cube(const std::string& filename, short verbosity) :
 verbosity_(verbosity) {
@@ -29,7 +30,8 @@ void Cube::readMap(const std::string& fname) {
         std::getline(inp, h1_);
         std::getline(inp, h2_);
         double x, y, z;
-        inp >> numAtoms_ >> orgx_ >> orgy_ >> orgz_;
+        inp >> numAtoms_ >> x >> y >> z;
+        origin_ = Vec3(x,y,z);
         inp >> Vx_ >> x >> y >> z;
         ex_ = Vec3(x, y, z);
 
@@ -77,5 +79,30 @@ void Cube::readMap(const std::string& fname) {
                 << "    Number of grid points: " << gridvalues_.size() << '\n'
                 << "    along x y z: " << Vx_ << ' ' << Vy_ << ' ' << Vz_ 
                 << " = " << Vx_ * Vy_ * Vz_ << '\n';
+    }
+}
+
+/**
+ * simple interpolation of grid to get a value
+ * coordinates outside grid throws exception (runtime_error)
+ * @param 
+ * @return 
+ */
+double Cube::mapValue(const Vec3& pos) {
+    
+    //! get coordinages of pos and ensure its inside grid
+    double pos_x = ex_*(pos - origin_);
+    double pos_y = ey_*(pos - origin_);
+    double pos_z = ez_*(pos - origin_);
+    
+    int idx_x = pos_x / std::sqrt(ex_.lengthsq());
+    int idx_y = pos_y / std::sqrt(ey_.lengthsq());
+    int idx_z = pos_x / std::sqrt(ez_.lengthsq());
+    
+    if (idx_x < 0 || idx_x >= Vx_ || idx_y < 0 || idx_y >= Vy_ || idx_z < 0 || idx_z > Vz_) {
+        if (verbosity_ > 1) {
+            std::cout << "*** Error: coordinate " << " out of range\n";
+        }
+        throw std::logic_error("Index out of range");
     }
 }
