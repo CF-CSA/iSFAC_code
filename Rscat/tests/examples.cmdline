@@ -1,11 +1,38 @@
 # check that subselection works:
 python3 ../rscat.py -f sf01.txt --Z0 7 -z 0 -s "0.572 28.846 1.042 9.054 0.465 2.421 0.131 0.317 0" -d 2.5 -D 5
 
+#############################################
 # ciprofloxavin, resolution range from xprep
+#############################################
+# neutral C
+python3 ../rscat.py -f sf01.txt --Z0 6 -z 0 \
+	-s " 0.731 36.995 1.195 11.297 0.456 2.814 0.125 0.346 0 0"\
+	-d 0.71 -D 19.05 | tee C0.rscat
+
+# neutral H (not used!)
+python3 ../rscat.py -f sf01.txt --Z0 1 -z 0 \
+	-s " 0.375 15.495 0.141 4.126 0.022 0.025 -0.101 46.884 0 0 0 0 0.32 1." \
+	-d 0.71 -D 19.05 | tee H0.rscat
+
+# neutral N
+python3 ../rscat.py -f sf01.txt --Z0 7 -z 0 \
+	-s " 0.572 28.846 1.042 9.054 0.465 2.421 0.131 0.317 0 0" \
+	-d 0.71 -D 19.05 | tee N0.rscat
+
+# neutral O
+python3 ../rscat.py -f sf01.txt --Z0 8 -z 0 \
+	-s " 0.455 23.78 0.917 7.622 0.472 2.144 0.138 0.296 0 0 0"\
+	-d 0.71 -D 19.05 | tee O0.rscat
+
 # neutral F
 python3 ../rscat.py -f sf01.txt --Z0 9 -z 0 \
 	-s " 0.369 20.239 0.811 6.609 0.475 1.931 0.146 0.279 0 0 0 0 0.72 18.998" \
 	-d 0.71 -D 19.05 | tee F0.rscat
+
+# neutral Cl
+python3 ../rscat.py -f sf_Z11-Z20.txt -C7  --Z0 17 -z 0 \
+	-s "  1.452 30.935 2.293 9.98 0.787 2.334 0.322 0.323 0 0 0 0"\
+	-d 0.71 -D 19.05 | tee Cl0.rscat
 
 # C-1
 python3 ../rscat.py -f sf01.txt --Z0 6 -z -1 \
@@ -16,6 +43,10 @@ python3 ../rscat.py -f sf01.txt --Z0 6 -z -1 \
 python3 ../rscat.py -f sf01.txt --Z0 6 -z 1 \
 	-s " 62.099 1820.496  4.068 75.137 15.609 427.287  2.290 10.163  0.302 0.0 0.0 0.000 0.730 12.010"\
 	-d 0.71 -D 19.05 | tee C+1.rscat
+
+#############################################
+# ZSM5
+#############################################
 
 # Si(IV), column does not correspond to Z0 in this text file
 # beware: first column is number 0, Si(0) is column 4 (-C4)
