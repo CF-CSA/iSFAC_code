@@ -14,6 +14,8 @@
 #ifndef CBATOM_H
 #define CBATOM_H
 
+#include "Atom.h"
+
 /**
  * Atom description from a cube file, containing Z, q, x,y,z
  */
@@ -26,6 +28,9 @@ public:
     cbAtom() = default;
     cbAtom(int Z, int q, double x, double y, double z);
     ~cbAtom() = default;
+    
+    //! convert to an atom
+    Atom atom() const;
 
 };
 

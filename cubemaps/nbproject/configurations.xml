@@ -4,9 +4,12 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>Atom.h</itemPath>
       <itemPath>Cube.h</itemPath>
+      <itemPath>Utils.h</itemPath>
       <itemPath>Vec3.h</itemPath>
       <itemPath>cbAtom.h</itemPath>
+      <itemPath>defines.h</itemPath>
       <itemPath>myExceptions.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -16,7 +19,9 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>Atom.cpp</itemPath>
       <itemPath>Cube.cpp</itemPath>
+      <itemPath>Utils.cpp</itemPath>
       <itemPath>Vec3.cpp</itemPath>
       <itemPath>cbAtom.cpp</itemPath>
       <itemPath>main.cpp</itemPath>
@@ -46,9 +51,17 @@
           <standard>11</standard>
         </ccTool>
       </compileType>
+      <item path="Atom.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Atom.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Cube.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Cube.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Utils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Utils.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Vec3.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -57,6 +70,8 @@
       <item path="cbAtom.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="cbAtom.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="defines.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -84,9 +99,17 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
+      <item path="Atom.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Atom.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Cube.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Cube.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Utils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Utils.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Vec3.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -95,6 +118,8 @@
       <item path="cbAtom.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="cbAtom.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="defines.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>

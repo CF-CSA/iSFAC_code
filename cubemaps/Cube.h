@@ -54,6 +54,7 @@ public:
     size_t gridIndex(int ix, int iy, int iz);
     double mapValue(int ix, int iy, int iz);
     
+    std::vector<Atom> atoms() const;
 
 };
 

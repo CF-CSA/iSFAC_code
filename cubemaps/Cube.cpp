@@ -183,3 +183,13 @@ double Cube::mapValue(const Vec3& pos) {
     return Vxyz;
 }
 
+/**
+ create a list of atoms from cbAtoms
+ */
+std::vector<Atom> Cube::atoms() const {
+    std::vector<Atom> a;
+    for (auto c: cbatoms_) {
+        a.push_back(c.atom());
+    }
+    return a;
+}

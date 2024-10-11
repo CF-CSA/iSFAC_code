@@ -55,7 +55,7 @@ if __name__ == "__main__":
         description="compute rscat from list of scattering factors and Cromaer Mann parameters"
     )
     parser.add_argument(
-        "-s", "--CM_params", help="Cromer Mann parameters from SFAC card", type=str
+        "-s", "--CM_params", help="Cromer Mann parameters from SFAC card: a b a b .. c", type=str
     )
     parser.add_argument(
         "-f", "--filename", help="two column file with values for s and for f_X(s)"

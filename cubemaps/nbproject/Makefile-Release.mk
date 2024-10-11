@@ -35,7 +35,9 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/Atom.o \
 	${OBJECTDIR}/Cube.o \
+	${OBJECTDIR}/Utils.o \
 	${OBJECTDIR}/Vec3.o \
 	${OBJECTDIR}/cbAtom.o \
 	${OBJECTDIR}/main.o
@@ -65,10 +67,20 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/cubemaps: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/cubemaps ${OBJECTFILES} ${LDLIBSOPTIONS}
 
+${OBJECTDIR}/Atom.o: Atom.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Atom.o Atom.cpp
+
 ${OBJECTDIR}/Cube.o: Cube.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Cube.o Cube.cpp
+
+${OBJECTDIR}/Utils.o: Utils.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Utils.o Utils.cpp
 
 ${OBJECTDIR}/Vec3.o: Vec3.cpp
 	${MKDIR} -p ${OBJECTDIR}
