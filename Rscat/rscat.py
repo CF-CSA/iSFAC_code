@@ -23,8 +23,13 @@ def MB(Z0, deltaZ, s, sf):
     mb = 0.023934 * (Z0 + deltaZ - sf) / np.square(s)
     return mb
 
+"""
+Rscat defined in https://doi.org/10.1107/S2052252518005237
+"""
 def Rscat(fmb, fcm):
-    rscat = np.abs(fmb-fcm)/np.abs(fmb)
+    nominator = np.sum(np.abs(fmb-fcm))
+    denominator = np.sum(np.abs(fmb))
+    rscat = nominator/denominator
     return rscat
 
 """
@@ -62,12 +67,32 @@ if __name__ == "__main__":
         help="value of Delta Z for element( e.g. C-: -1, Si(IV): +4)",
         type=int,
     )
-    parser.add_argument("-S", "--ranges", help="string with lower and upper limit of s", type=str)
+    parser.add_argument("-d", "--dmin", help="lower limit of d spacing", type=float)
+    parser.add_argument("-D", "--dmax", help="upper limit of d spacing", type=float)
+    parser.add_argument("-C", "--column", help="column of data in data file filename", type=int)
     args = parser.parse_args()
 
     cm = [float(f) for f in (args.CM_params).split()]
     data = readfs(args.filename)
-    s_f= data[:, [0, args.Z0]]
+    if args.column is None:
+        s_f= data[:, [0, args.Z0]]
+    else:
+        s_f = data[:, [0, args.column]]
+    print (s_f.shape)
+    smax = 0.5/args.dmin
+    smin = 0.5/args.dmax
+    # debugging output
+    # print (f"smax = {smax}, smin = {smin}")
 
+    s_f = s_f[(s_f[:,0] > smin) & (s_f[:, 0] < smax)]
+    # debugging output
+    # print (s_f)
+
+    # compute f(s) by Mott-Bethe formula
     fmb = MB(args.Z0, args.deltaZ, s_f[:, 0], s_f[:,1])
+    # compute f(s) by Cromer-Mann parameters
+    fcm = Fcalc(cm, s_f[:,0])
+    print (f"computed fmb(s) and fcm(s) with shape {fmb.shape} and {fcm.shape}")
+    rscat = Rscat(fmb, fcm)
+    print(f"---> Rscat = {100*rscat:.3f}% for data range {args.dmin:.2f} < d < {args.dmax:.2f}, i.e. {smin:.5f} < s < {smax:.5f}")
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

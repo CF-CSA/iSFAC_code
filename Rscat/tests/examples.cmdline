@@ -1,0 +1,26 @@
+# check that subselection works:
+python3 ../rscat.py -f sf01.txt --Z0 7 -z 0 -s "0.572 28.846 1.042 9.054 0.465 2.421 0.131 0.317 0" -d 2.5 -D 5
+
+# ciprofloxavin, resolution range from xprep
+# neutral F
+python3 ../rscat.py -f sf01.txt --Z0 9 -z 0 \
+	-s " 0.369 20.239 0.811 6.609 0.475 1.931 0.146 0.279 0 0 0 0 0.72 18.998" \
+	-d 0.71 -D 19.05 | tee F0.rscat
+
+# C-1
+python3 ../rscat.py -f sf01.txt --Z0 6 -z -1 \
+	-s " -68.530 2526.503 -7.849 200.334 -90.191 -0.019 -23.445 806.628 91.023 0.0"\
+	-d 0.71 -D 19.05 | tee C-1.rscat
+
+# C+1
+python3 ../rscat.py -f sf01.txt --Z0 6 -z 1 \
+	-s " 62.099 1820.496  4.068 75.137 15.609 427.287  2.290 10.163  0.302 0.0 0.0 0.000 0.730 12.010"\
+	-d 0.71 -D 19.05 | tee C+1.rscat
+
+# Si(IV), column does not correspond to Z0 in this text file
+# beware: first column is number 0, Si(0) is column 4 (-C4)
+# resolution range: 20.17 - 0.65A for file ZSM5_DS2
+python3 ../rscat.py -f sf_Z11-Z20.txt --Z0 14 -z 4 \
+	-s " 248.768 1845.094 63.573 442.013 16.995 81.788  5.591 11.656  0.727 "\
+	-C 4 \
+	-d 0.65 -D 20.17 | tee Si+4.rscat
