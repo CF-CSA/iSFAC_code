@@ -29,6 +29,11 @@ public:
     cbAtom(int Z, int q, double x, double y, double z);
     ~cbAtom() = default;
     
+    //! getters
+    int Z() const { return Z_; }
+    double q() const { return q_; }
+    Vec3 pos() const { return Vec3(x_, y_, z_); }
+    
     //! convert to an atom
     Atom atom() const;
 

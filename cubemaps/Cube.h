@@ -50,11 +50,17 @@ public:
     Cube(const std::string& filename, short verbosity_);
     ~Cube() = default;
     
+    //! getter functions
+    int numAtoms() const { return numAtoms_; }
     double mapValue(const Vec3&);
     size_t gridIndex(int ix, int iy, int iz);
     double mapValue(int ix, int iy, int iz);
     
     std::vector<Atom> atoms() const;
+    
+    // return list of distances to position
+    std::vector<double> distances_sq(const Vec3& pos) const;
+    double otherrmsd(const Cube& cubemap) const;
 
 };
 

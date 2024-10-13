@@ -193,3 +193,33 @@ std::vector<Atom> Cube::atoms() const {
     }
     return a;
 }
+
+std::vector<double> Cube::distances_sq(const Vec3& pos) const {
+    std::vector<double> d2s(0);
+    for (auto atom: cbatoms_) {
+        const double d = (pos - atom.pos()).lengthsq();
+        d2s.push_back(d);
+    }
+    return d2s;
+}
+
+/**
+ * compare coordinates with another map
+ * throws an error if different number of atoms
+ */
+double Cube::otherrmsd(const Cube& cubemap) const {
+    if (numAtoms_!= cubemap.numAtoms()) {
+        if (verbosity_ > 1) {
+            std::cout << "*** Error: comparing Cube map of " << numAtoms_
+                    << " atoms with Cube map of " << cubemap.numAtoms() << " atoms.\n";
+            throw myExcepts::Format("Unequal number of atoms in maps");
+        }
+        // create distance matrix
+        std::vector<double> distMatrix(numAtoms_*numAtoms_, 0.0);
+        for (auto myatom: cbatoms_) {
+            std::vector<double> d_row = cubemap.distances_sq(myatom.pos());
+            distMatrix.insert(distMatrix.end(), d_row.begin(), d_row.end());
+        }
+        
+    }
+}
