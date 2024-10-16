@@ -17,9 +17,48 @@
 #include "Vec3.h"
 #include "Atom.h"
 
+#include <cmath>
 
+
+
+namespace Utils {
 std::vector<Vec3> surfacegrid (const std::vector<Atom>& atoms, double gridspacing, int verbosity);
 
+template <typename T> T CC(const std::vector<T>&, const std::vector<T>&);
+
+}
+/**
+ * Calculates the correlation coefficient for two lists of numbers of type T.
+ * It is not checked whether their sizes match
+ * \param l1    first  list of numbers
+ * \param l2    second list of numbers
+ */
+template <typename T> T Utils::CC(const std::vector<T>& l1,
+                                        const std::vector<T>& l2)
+{
+    T sum1, sum1_sq, sum2, sum2_sq, sum12;
+    T nominator;
+    T denominator;
+
+    sum1 = sum2 = sum1_sq = sum2_sq = sum12 = 0;
+
+    double inv_list_size = 1.0/l1.size();
+
+    for (unsigned int i = 0; i < l1.size(); i++)
+    {
+        sum1    += l1[i];
+        sum2    += l2[i];
+        sum1_sq += l1[i]*l1[i];
+        sum2_sq += l2[i]*l2[i];
+        sum12   += l1[i]*l2[i];
+    }
+
+    nominator   = sum12 - inv_list_size*sum1 * sum2;
+    denominator = (sum1_sq - inv_list_size * sum1*sum1) *
+                  (sum2_sq - inv_list_size * sum2*sum2);
+
+    return (nominator / std::sqrt(denominator));
+}
 
 #endif /* UTILS_H */
 

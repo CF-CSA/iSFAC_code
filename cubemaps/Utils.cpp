@@ -16,7 +16,7 @@
  * @param gridspacing
  * @return 
  */
-std::vector<Vec3> surfacegrid (const std::vector<Atom>& atoms, double gridspacing, int verbosity) {
+std::vector<Vec3> Utils::surfacegrid (const std::vector<Atom>& atoms, double gridspacing, int verbosity) {
     
     Vec3 bbox_min, bbox_max;
     std::vector<Vec3> grid, surface;
@@ -63,3 +63,4 @@ std::vector<Vec3> surfacegrid (const std::vector<Atom>& atoms, double gridspacin
     return surface;
     
 }
+

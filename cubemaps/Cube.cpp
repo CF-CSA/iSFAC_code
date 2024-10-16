@@ -13,6 +13,7 @@
 
 #include "Cube.h"
 #include "myExceptions.h"
+#include "Utils.h"
 #include <fstream>
 #include <iostream>
 #include <cmath>
@@ -83,12 +84,12 @@ void Cube::readMap(const std::string& fname) {
     }
 }
 
-size_t Cube::gridIndex(int ix, int iy, int iz) {
+size_t Cube::gridIndex(int ix, int iy, int iz) const {
     size_t idx = iz + Vz_*(iy + Vy_*ix);
     return idx;
 }
 
-double Cube::mapValue(int ix, int iy, int iz) {
+double Cube::mapValue(int ix, int iy, int iz) const{
     const size_t idx = gridIndex(ix, iy, iz);
     assert (idx >= 0);
     assert (idx < Vx_*Vy_*Vz_);
@@ -146,7 +147,7 @@ Would you like me to provide an example calculation or help implement this in co
  * @param 
  * @return 
  */
-double Cube::mapValue(const Vec3& pos) {
+double Cube::mapValue(const Vec3& pos) const{
     
     //! get coordinages of pos and ensure its inside grid
     double pos_x = ex_*(pos - origin_);
@@ -203,23 +204,73 @@ std::vector<double> Cube::distances_sq(const Vec3& pos) const {
     return d2s;
 }
 
+Vec3 Cube::pos(unsigned short idx) const {
+    if (idx > numAtoms_) {
+        if (verbosity_ > 1) {
+            std::cout << "*** Error: atom index out of range\n";
+        }
+        throw std::logic_error("Atom index out of range");
+    }
+    return cbatoms_[idx].pos();
+}
+
 /**
  * compare coordinates with another map
  * throws an error if different number of atoms
  */
-double Cube::otherrmsd(const Cube& cubemap) const {
-    if (numAtoms_!= cubemap.numAtoms()) {
+double Cube::deltaTrace(const Cube& cubemap) const {
+    if (numAtoms_ != cubemap.numAtoms()) {
         if (verbosity_ > 1) {
             std::cout << "*** Error: comparing Cube map of " << numAtoms_
                     << " atoms with Cube map of " << cubemap.numAtoms() << " atoms.\n";
             throw myExcepts::Format("Unequal number of atoms in maps");
         }
-        // create distance matrix
-        std::vector<double> distMatrix(numAtoms_*numAtoms_, 0.0);
-        for (auto myatom: cbatoms_) {
-            std::vector<double> d_row = cubemap.distances_sq(myatom.pos());
-            distMatrix.insert(distMatrix.end(), d_row.begin(), d_row.end());
-        }
-        
     }
+    double trsq = 0.0;
+    // create distance matrix
+    std::vector<double> distMatrix(numAtoms_*numAtoms_, 0.0);
+    for (int i = 0; i < numAtoms_; ++i) {
+        double d2 = (cbatoms_[i].pos() - cubemap.pos(i)).lengthsq();
+        trsq += d2;
+        // std::vector<double> d_row = cubemap.distances_sq(myatom.pos());
+        // distMatrix.insert(distMatrix.end(), d_row.begin(), d_row.end());
+    }
+    return trsq;
 }
+
+
+/**
+ * Compute Pearson Correlation coefficient with another cube. Grid values
+ * take from this cube and interpolated for the second cube
+ * @param cube
+ * @return 
+ */
+double Cube::CC(const Cube& cube) const {
+    std::vector<double> g1, g2; 
+    g1.reserve(gridvalues_.size());
+    g2.reserve(gridvalues_.size());
+    // get values from second cube
+    for (int ix = 0; ix < Vx_; ++ix) {
+        for (int iy = 0; iy < Vy_; ++iy) {
+            for (int iz = 0; iz < Vz_; ++iz) {
+                const Vec3 pos = origin_ + ix*ex_ + iy*ey_ + iz* ez_;
+                try {
+                    const double val = cube.mapValue(pos);
+                    g1.push_back(mapValue(ix, iy, iz));
+                    g2.push_back(val);
+                }
+                // non-overlapping position
+                catch (std::logic_error& e) {
+                    continue;
+                }
+            }
+        }
+    }
+    const double cc =Utils::CC<double>(g1, g2);
+    if (verbosity_ > 1) {
+        std::cout << "---> Number of overlapping gridpoints: " << g1.size() << '\n'
+                << "    Pearson CC for maps: " << cc << std::endl;
+    }
+    return cc;
+}
+

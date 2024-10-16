@@ -51,16 +51,22 @@ public:
     ~Cube() = default;
     
     //! getter functions
-    int numAtoms() const { return numAtoms_; }
-    double mapValue(const Vec3&);
-    size_t gridIndex(int ix, int iy, int iz);
-    double mapValue(int ix, int iy, int iz);
-    
+    int numAtoms() const { return numAtoms_; }  
+    double mapValue(const Vec3&) const;
+    size_t gridIndex(int ix, int iy, int iz) const;
+    double mapValue(int ix, int iy, int iz) const;
+    // return position of atom idx
+    Vec3 pos(unsigned short idx) const;
+
     std::vector<Atom> atoms() const;
     
     // return list of distances to position
     std::vector<double> distances_sq(const Vec3& pos) const;
-    double otherrmsd(const Cube& cubemap) const;
+    // compute the trace of moduli of distances^2
+    double deltaTrace(const Cube& cubemap) const;
+    
+    //! compute pearson coefficient with a second grid
+    double CC(const Cube& cube) const;
 
 };
 
