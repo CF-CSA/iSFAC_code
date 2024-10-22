@@ -40,10 +40,13 @@ private:
     //! directions of grid
     Vec3 ex_, ey_, ez_;
     std::vector<cbAtom> cbatoms_;
+    Vec3 com_;
     std::vector<double> gridvalues_;
     short verbosity_;
 
     void readMap(const std::string& fname);
+    //! compute geometric centroid ('CoM') for N coordinates
+    Vec3 CoM(int N = -1);
 
 public:
     Cube() = default;
@@ -58,14 +61,18 @@ public:
     // return position of atom idx
     Vec3 pos(unsigned short idx) const;
 
+    // list of atoms
     std::vector<Atom> atoms() const;
+    // only list of coordinates
+    std::vector<Vec3> coords() const;
     
     // return list of distances to position
     std::vector<double> distances_sq(const Vec3& pos) const;
     // compute the trace of moduli of distances^2
     double deltaTrace(const Cube& cubemap) const;
     
-    //! compute pearson coefficient with a second grid
+    double prepCC(const Cube& cube) const;
+//! compute pearson coefficient with a second grid
     double CC(const Cube& cube) const;
 
 };

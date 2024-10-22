@@ -18,6 +18,7 @@
 #include <iostream>
 #include <cmath>
 #include <cassert>
+#include <numeric>
 
 Cube::Cube(const std::string& filename, short verbosity) :
 verbosity_(verbosity) {
@@ -274,3 +275,62 @@ double Cube::CC(const Cube& cube) const {
     return cc;
 }
 
+/**
+ Procedure to determine CC between two grid Cfix, Cmove:
+ * - cenre of mass CoM for either grid, ctrf, ctrm
+ * - move both sets of coordinates to origin
+ * - perform Kabsch algorithm to retrieve rotation matrix R that rotates Atoms_mv to
+ *   atoms_fix
+ * - run through  grid Cmove
+ *   -- get val_i and gridpoint g_i
+ *   -- compute respective grid point in Cfix
+ *   --  R(g_i - ctrm) + ctrf -> coordinate in Cfix
+ *   -- get respective value of Cfix
+ * - with two lists, compute CC
+ */
+
+
+std::vector<Vec3> Cube::coords() const {
+    std::vector<Vec3>X;
+    for (auto x: cbatoms_) {
+        Vec3 pos = x.pos();
+        X.push_back(pos);
+    }
+    return X;
+}
+
+/**
+ * Compute centre of geometry for @c N top atoms.
+ * If N < 0, use all atoms
+ * @param N
+ * @return 
+ */
+Vec3 Cube::CoM(int N) {
+    std::vector<Vec3> coords;
+    if (N < 0) {
+        for (auto x: cbatoms_) {
+            Vec3 p = x.pos();
+            coords.push_back(p);
+        }
+    }
+    else {
+        for (int i = 0; i < N; ++i) {
+            Vec3 p = cbatoms_[i].pos();
+            coords.push_back(p);
+        }
+    }
+    com_ = 1./coords.size()*std::accumulate(coords.begin(), coords.end(), Vec3(0,0,0));
+    return com_;
+}
+
+double Cube::prepCC(const Cube& cube) const {
+    std::vector<Vec3> coords1 (this->coords());
+    std::vector<Vec3> coords2 (cube.coords());
+    
+    coords1 = Utils::centroid(coords1);
+    coords2 = Utils::centroid(coords2);
+    
+    Mat33 R2_onto1 =Utils::KabschR(coords1, coords2);
+    
+    
+}

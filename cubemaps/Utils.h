@@ -15,14 +15,20 @@
 #define UTILS_H
 
 #include "Vec3.h"
+#include "Mat33.h"
 #include "Atom.h"
 
 #include <cmath>
 
 
-
 namespace Utils {
 std::vector<Vec3> surfacegrid (const std::vector<Atom>& atoms, double gridspacing, int verbosity);
+
+//! translate set of coordinates to their centroid
+std::vector<Vec3> centroid (const std::vector<Vec3>& coords);
+
+//! compute Kabsch transpose for two sets of ordered vectors, aleady superposed
+Mat33 KabschR (const std::vector<Vec3>& fixed, const std::vector<Vec3> moved);
 
 template <typename T> T CC(const std::vector<T>&, const std::vector<T>&);
 

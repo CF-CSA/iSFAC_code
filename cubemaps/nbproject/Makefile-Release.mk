@@ -37,6 +37,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/Atom.o \
 	${OBJECTDIR}/Cube.o \
+	${OBJECTDIR}/Mat33.o \
 	${OBJECTDIR}/Utils.o \
 	${OBJECTDIR}/Vec3.o \
 	${OBJECTDIR}/cbAtom.o \
@@ -57,7 +58,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=
+LDLIBSOPTIONS=`pkg-config --libs gsl`  
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -70,32 +71,37 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/cubemaps: ${OBJECTFILES}
 ${OBJECTDIR}/Atom.o: Atom.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Atom.o Atom.cpp
+	$(COMPILE.cc) -O2 `pkg-config --cflags gsl` -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Atom.o Atom.cpp
 
 ${OBJECTDIR}/Cube.o: Cube.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Cube.o Cube.cpp
+	$(COMPILE.cc) -O2 `pkg-config --cflags gsl` -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Cube.o Cube.cpp
+
+${OBJECTDIR}/Mat33.o: Mat33.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 `pkg-config --cflags gsl` -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Mat33.o Mat33.cpp
 
 ${OBJECTDIR}/Utils.o: Utils.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Utils.o Utils.cpp
+	$(COMPILE.cc) -O2 `pkg-config --cflags gsl` -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Utils.o Utils.cpp
 
 ${OBJECTDIR}/Vec3.o: Vec3.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Vec3.o Vec3.cpp
+	$(COMPILE.cc) -O2 `pkg-config --cflags gsl` -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Vec3.o Vec3.cpp
 
 ${OBJECTDIR}/cbAtom.o: cbAtom.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/cbAtom.o cbAtom.cpp
+	$(COMPILE.cc) -O2 `pkg-config --cflags gsl` -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/cbAtom.o cbAtom.cpp
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -O2 `pkg-config --cflags gsl` -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
 
 # Subprojects
 .build-subprojects:
