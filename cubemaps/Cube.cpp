@@ -69,8 +69,11 @@ void Cube::readMap(const std::string& fname) {
         while ((!inp.eof()) && (!inp.fail())) {
             double g;
             inp >> g;
+            if (inp.fail() || inp.eof()) {
+                break;
+            }
             if (verbosity_ > 3)
-                std::cout << g << '\n';
+                //std::cout << g << '\n';
             gridvalues_.push_back(g);
         }
     }    catch (std::ifstream::failure e) {
@@ -85,6 +88,10 @@ void Cube::readMap(const std::string& fname) {
                 << "    along x y z: " << Vx_ << ' ' << Vy_ << ' ' << Vz_ 
                 << " = " << Vx_ * Vy_ * Vz_ << '\n';
     }
+    // define ``reciprocal vectors'' for coordinate retrieval
+    ux_ = cross(ey_, ez_);
+    uy_ = cross(ez_, ex_);
+    uz_ = cross(ex_, ey_);
 }
 
 size_t Cube::gridIndex(int ix, int iy, int iz) const {
@@ -153,15 +160,10 @@ Would you like me to provide an example calculation or help implement this in co
 double Cube::mapValue(const Vec3& pos) const{
     
     //! get coordinages of pos and ensure its inside grid
-    double pos_x = ex_*(pos - origin_);
-    double pos_y = ey_*(pos - origin_);
-    double pos_z = ez_*(pos - origin_);
-    
-    // fractional coordinates 
-    const double fx = pos_x / std::sqrt(ex_.lengthsq());
-    const double fy = pos_y / std::sqrt(ey_.lengthsq());
-    const double fz = pos_x / std::sqrt(ez_.lengthsq());
-    
+    double fx = (pos - origin_)*ux_ / (ex_ * ux_);
+    double fy = (pos - origin_)*uy_ / (ey_ * uy_);
+    double fz = (pos - origin_)*uz_ / (ez_ * uz_);;
+        
     // low left index
     int ix = fx;
     int iy = fy;
@@ -253,17 +255,16 @@ double Cube::CC(const Cube& other, const Mat33& RKabsch) const {
     //! ensure cnetroid is properly computed
     g1.reserve(gridvalues_.size());
     g2.reserve(gridvalues_.size());
+    const Vec3 shifted_origin = origin_ - centroid_;
     // get values from second cube
     for (int ix = 0; ix < Vx_; ++ix) {
         for (int iy = 0; iy < Vy_; ++iy) {
             for (int iz = 0; iz < Vz_; ++iz) {
-                Vec3 pos = origin_ + ix*ex_ + iy*ey_ + iz* ez_;
-                pos = pos - centroid_;
+                // compute coordinate of current grid point
+                Vec3 pos = shifted_origin + ix*ex_ + iy*ey_ + iz* ez_;
+                // rotated grid and move to other centroid
                 pos = RKabsch*pos + other.centroid();
-                //! move this into second grid
-                
                 try {
-                    
                     const double val = other.mapValue(pos);
                     g2.push_back(val);
                     // only push first value if transform pos is inside second grid
@@ -339,7 +340,7 @@ Vec3 Cube::centroid(int N) {
  * @param cube
  * @return 
  */
-Mat33 Cube::getTransform(const Cube& cube) const {
+Mat33 Cube::getRKabsch(const Cube& cube) const {
 
     std::vector<Vec3> coords1 (this->coords());
     
@@ -353,10 +354,10 @@ Mat33 Cube::getTransform(const Cube& cube) const {
         x = x- cube.centroid();
     }
     
-    Mat33 R2_onto1 =Utils::KabschR(coords1, coords2);
+    Mat33 kabschR =Utils::KabschR(coords1, coords2);
     
     //! return is Kabsch matrix and inverse of centre
-    return R2_onto1;
+    return kabschR;
     
     
 }

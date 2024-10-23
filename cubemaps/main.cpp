@@ -12,12 +12,29 @@
  */
 
 #include "Cube.h"
+#include "Parser.h"
+#include "Usage.h"
+#include "myExceptions.h"
 /*
  * 
  */
 int main(int argc, char** argv) {
 
-    Cube cubemap (argv[1], 2);
+    hello(std::cout);
+    
+    try {
+    Parser parser(argc, argv);
+    
+    
+    Cube reference = Cube(parser.cubeRef(), parser.verbosity());
+    Cube moving    = Cube(parser.cubeMoving(), parser.verbosity());
+    }
+    catch (myExcepts::Usage& e){
+        usage();
+    }
+    catch (std::logic_error& e) {
+        // just finish
+    }
     return 0;
 }
 

@@ -42,6 +42,8 @@ private:
     int Vx_, Vy_, Vz_;
     //! directions of grid
     Vec3 ex_, ey_, ez_;
+    //! cross product of grid directions: ux_ = ey_ x ez_ etc.
+    Vec3 ux_, uy_, uz_;
     std::vector<cbAtom> cbatoms_;
     std::vector<double> gridvalues_;
     short verbosity_;
@@ -75,7 +77,8 @@ public:
     // compute the trace of moduli of distances^2
     double deltaTrace(const Cube& cubemap) const;
     
-    Mat33 getTransform(const Cube& cube) const;
+    //! get Kabsch rotation to rotate other cube onto this one
+    Mat33 getRKabsch(const Cube& cube) const;
 //! compute pearson coefficient with a second grid
     double CC(const Cube& other, const Mat33& RKabsch) const;
 
