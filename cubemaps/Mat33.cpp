@@ -14,6 +14,7 @@
 #include <iomanip>
 
 #include "Mat33.h"
+#include "Vec3.h"
 
 Mat33::Mat33() {
     for (int i = 0; i < 9; ++i) {
@@ -48,6 +49,14 @@ Mat33 operator*(const Mat33& m1, const Mat33& m2) {
         }
     }
     return M;
+}
+
+Vec3 operator* (const Mat33& m, const Vec3& xyz) {
+    double x[3];
+    for (int r = 0; r < 3; r++) {
+        x[r] = m(r,0)*xyz.x() + m(r,1)*xyz.y() + m(r,2)*xyz.z();
+    }
+    return Vec3(x[0], x[1], x[2]);
 }
 
 std::ostream& operator<< (std::ostream& outp, const Mat33& m) {

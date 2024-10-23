@@ -15,7 +15,7 @@
 #define MAT33_H
 
 #include <iostream>
-class XYZ;
+class Vec3;
 
 class Mat33 {
 private:
@@ -37,7 +37,7 @@ public:
         return matrix_[3*idx1+idx2];
     }
     friend Mat33 operator*(const Mat33& m1, const Mat33& m2);
-    friend XYZ operator* (const Mat33& m, const XYZ& xyz);
+    friend Vec3 operator* (const Mat33& m, const Vec3& xyz);
     friend std::ostream& operator<<(std::ostream& outp, const Mat33& m);
 };
 

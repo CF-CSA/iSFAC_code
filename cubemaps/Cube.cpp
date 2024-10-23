@@ -23,6 +23,8 @@
 Cube::Cube(const std::string& filename, short verbosity) :
 verbosity_(verbosity) {
     readMap(filename);
+    // when successful, compute centroid
+    centroid();
 }
 
 void Cube::readMap(const std::string& fname) {
@@ -246,19 +248,27 @@ double Cube::deltaTrace(const Cube& cubemap) const {
  * @param cube
  * @return 
  */
-double Cube::CC(const Cube& cube) const {
+double Cube::CC(const Cube& other, const Mat33& RKabsch) const {
     std::vector<double> g1, g2; 
+    //! ensure cnetroid is properly computed
     g1.reserve(gridvalues_.size());
     g2.reserve(gridvalues_.size());
     // get values from second cube
     for (int ix = 0; ix < Vx_; ++ix) {
         for (int iy = 0; iy < Vy_; ++iy) {
             for (int iz = 0; iz < Vz_; ++iz) {
-                const Vec3 pos = origin_ + ix*ex_ + iy*ey_ + iz* ez_;
+                Vec3 pos = origin_ + ix*ex_ + iy*ey_ + iz* ez_;
+                pos = pos - centroid_;
+                pos = RKabsch*pos + other.centroid();
+                //! move this into second grid
+                
                 try {
-                    const double val = cube.mapValue(pos);
-                    g1.push_back(mapValue(ix, iy, iz));
+                    
+                    const double val = other.mapValue(pos);
                     g2.push_back(val);
+                    // only push first value if transform pos is inside second grid
+                    g1.push_back(mapValue(ix, iy, iz));
+                
                 }
                 // non-overlapping position
                 catch (std::logic_error& e) {
@@ -305,7 +315,7 @@ std::vector<Vec3> Cube::coords() const {
  * @param N
  * @return 
  */
-Vec3 Cube::CoM(int N) {
+Vec3 Cube::centroid(int N) {
     std::vector<Vec3> coords;
     if (N < 0) {
         for (auto x: cbatoms_) {
@@ -319,18 +329,34 @@ Vec3 Cube::CoM(int N) {
             coords.push_back(p);
         }
     }
-    com_ = 1./coords.size()*std::accumulate(coords.begin(), coords.end(), Vec3(0,0,0));
-    return com_;
+    centroid_ = 1./coords.size()*std::accumulate(coords.begin(), coords.end(), Vec3(0,0,0));
+    return centroid_;
 }
 
-double Cube::prepCC(const Cube& cube) const {
+/**
+ * Determine how to move @c other to this:
+ * move to centroid, get R from Kabsch, move to centroid to this
+ * @param cube
+ * @return 
+ */
+Mat33 Cube::getTransform(const Cube& cube) const {
+
     std::vector<Vec3> coords1 (this->coords());
-    std::vector<Vec3> coords2 (cube.coords());
     
-    coords1 = Utils::centroid(coords1);
-    coords2 = Utils::centroid(coords2);
+    //! move copy of coordinates to centre
+    for (auto &x: coords1) {
+        x = x-centroid_;
+    }
+    //! same for other cube
+    std::vector<Vec3> coords2 (cube.coords());
+    for (auto &x: coords2) {
+        x = x- cube.centroid();
+    }
     
     Mat33 R2_onto1 =Utils::KabschR(coords1, coords2);
+    
+    //! return is Kabsch matrix and inverse of centre
+    return R2_onto1;
     
     
 }

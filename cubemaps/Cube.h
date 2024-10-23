@@ -16,6 +16,7 @@
 
 #include "cbAtom.h"
 #include "Vec3.h"
+#include "Mat33.h"
 #include <vector>
 #include <string>
 
@@ -33,20 +34,21 @@ private:
     std::string h1_, h2_;
     //! number of atoms
     int numAtoms_;
-    //! origin
+    //! origin from cube file
     Vec3 origin_;
+    //! centroid from coordinates
+    Vec3 centroid_;
     //! number of voxels in each direction
     int Vx_, Vy_, Vz_;
     //! directions of grid
     Vec3 ex_, ey_, ez_;
     std::vector<cbAtom> cbatoms_;
-    Vec3 com_;
     std::vector<double> gridvalues_;
     short verbosity_;
 
     void readMap(const std::string& fname);
     //! compute geometric centroid ('CoM') for N coordinates
-    Vec3 CoM(int N = -1);
+    Vec3 centroid(int N = -1);
 
 public:
     Cube() = default;
@@ -60,6 +62,8 @@ public:
     double mapValue(int ix, int iy, int iz) const;
     // return position of atom idx
     Vec3 pos(unsigned short idx) const;
+    
+    Vec3 centroid() const { return centroid_; }
 
     // list of atoms
     std::vector<Atom> atoms() const;
@@ -71,9 +75,9 @@ public:
     // compute the trace of moduli of distances^2
     double deltaTrace(const Cube& cubemap) const;
     
-    double prepCC(const Cube& cube) const;
+    Mat33 getTransform(const Cube& cube) const;
 //! compute pearson coefficient with a second grid
-    double CC(const Cube& cube) const;
+    double CC(const Cube& other, const Mat33& RKabsch) const;
 
 };
 
