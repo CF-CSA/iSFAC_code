@@ -5,6 +5,8 @@
  * Created on July 24, 2012, 11:12 PM
  */
 
+#include <iostream>
+
 #ifndef VEC3_H
 #define	VEC3_H
 
@@ -27,6 +29,8 @@ public:
     friend Vec3 operator+ (const Vec3& v1, const Vec3& v2);
     friend Vec3 operator- (const Vec3& v1, const Vec3& v2);
     friend Vec3 cross( const Vec3& v1, const Vec3& v2);
+    
+    friend std::ostream& operator<< (std::ostream& outp, const Vec3& v);
 
 };
 
@@ -34,6 +38,8 @@ double operator*(const Vec3& v1, const Vec3& v2);
 Vec3 operator* (const double s, const Vec3& v);
 Vec3 operator+ (const Vec3& v1, const Vec3& v2);
 Vec3 cross( const Vec3& v1, const Vec3& v2);
+
+std::ostream& operator<<(std::ostream& outp, const Vec3& v);
 
 #endif	/* VEC3_H */
 

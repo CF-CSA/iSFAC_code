@@ -15,24 +15,35 @@
 #include "Parser.h"
 #include "Usage.h"
 #include "myExceptions.h"
+
 /*
  * 
  */
 int main(int argc, char** argv) {
 
     hello(std::cout);
-    
+
     try {
-    Parser parser(argc, argv);
-    
-    
-    Cube reference = Cube(parser.cubeRef(), parser.verbosity());
-    Cube moving    = Cube(parser.cubeMoving(), parser.verbosity());
-    }
-    catch (myExcepts::Usage& e){
+        Parser parser(argc, argv);
+
+        Cube reference = Cube(parser.cubeRef(), parser.verbosity());
+        Cube moving = Cube(parser.cubeMoving(), parser.verbosity());
+
+        if (parser.verbosity() > 2) {
+            std::cout << "---> Information about maps before consistence checks:\n";
+            reference.info();
+            moving.info();
+        }
+        //! do some sanity checks before preparing for CC
+        consistency_checks(reference, moving, parser.verbosity());
+        if (parser.verbosity() > 2) {
+            std::cout << "---> Information about maps after consistence checks:\n";
+            reference.info();
+            moving.info();
+        }
+    }    catch (myExcepts::Usage& e) {
         usage();
-    }
-    catch (std::logic_error& e) {
+    }    catch (std::logic_error& e) {
         // just finish
     }
     return 0;

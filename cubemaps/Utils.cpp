@@ -85,7 +85,25 @@ std::vector<Vec3> Utils::centroid (const std::vector<Vec3>& coords) {
     
     return coords;
 }
-
+/**
+ * Compute the upper triangle of squared distances between a set of coordinates
+ * main diagonal is omitted
+ * @param coords
+ * @return 
+ */
+std::vector<double> Utils::distance_matrix(const std::vector<Vec3>& coords) {
+    std::vector<double> distances;
+    const int N = (coords.size()*(coords.size()-1)) /2;
+    distances.reserve(N);
+    
+    for (std::vector<Vec3>::const_iterator itr = coords.begin(); itr != coords.end()-1; ++itr) {
+        for (std::vector<Vec3>::const_iterator itc = itr+1; itc != coords.end(); ++itc) {
+            double dsqd = ((*itr) - (*itc)).lengthsq();
+            distances.push_back(std::sqrt(dsqd));
+        }
+    }
+    return distances;
+}
 /**
  * Compute rotation matrix that rotates moved onto fixed
  * follows  Kabsch algortithm with SVD as explained at 

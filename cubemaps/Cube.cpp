@@ -19,6 +19,7 @@
 #include <cmath>
 #include <cassert>
 #include <numeric>
+#include <iomanip>
 
 Cube::Cube(const std::string& filename, short verbosity) :
 verbosity_(verbosity) {
@@ -360,4 +361,61 @@ Mat33 Cube::getRKabsch(const Cube& cube) const {
     return kabschR;
     
     
+}
+
+/**
+ * - compare number of atoms, keep only lower number
+ * - compute both distance matrices, and compare them element wise
+ * - recompute centroid
+ * @param other
+ * @return 
+ */
+bool consistency_checks (Cube& one, Cube& two, unsigned char verbosity) {
+    int N = std::min(one.numAtoms(), two.numAtoms());
+    
+    if (N < one.numAtoms()) {
+        if (verbosity > 1) {
+            std::cout << "---> Consistency check: limiting number of atoms for first map from "
+                    << one.numAtoms() << " to " << N << '\n';
+        }
+        one.cbatoms_ = std::vector<cbAtom> (one.cbatoms_.begin(), one.cbatoms_.begin()+N);
+        one.centroid(-1);
+    }
+    
+    else if (N < two.numAtoms()) {
+        if (verbosity > 1) {
+            std::cout << "---> Consistency check: limiting number of atoms for second map from "
+                    << two.numAtoms() << " to " << N << '\n';
+        }
+        two.cbatoms_ = std::vector<cbAtom> (two.cbatoms_.begin(), two.cbatoms_.begin()+N);
+        two.centroid(-1);
+    }
+    
+    one.info();
+    two.info();
+    if (verbosity > 2) {
+        std::cout << "---> Producing distance matrix for first map with " << one.coords().size() << " coordinates.\n"; 
+    }
+    const std::vector<double> d2one (Utils::distance_matrix(one.coords()));
+    if (verbosity > 2) {
+        std::cout << "---> Producing distance matrix for second map with " << two.coords().size() << " coordinates.\n"; 
+    }
+    const std::vector<double> d2two (Utils::distance_matrix(two.coords()));
+    
+}
+void Cube::info() const {
+    std::vector<double> dists = Utils::distance_matrix(coords());
+    std::cout << "---> Information about Cube map\n"
+            << "   Number of atoms: " << cbatoms_.size() << '\n';
+    for (int idx = 0; idx < dists.size(); ) {
+        const int tabs = idx / (cbatoms_.size()-1) +1;
+        for (int i = 0; i < tabs; ++i) {
+            std::cout << std::setw(7) << ' ';
+        }
+        for (int i = tabs; i  < cbatoms_.size(); ++i) {
+            std::cout << std::fixed << std::setw(7) << std::setprecision(2) << dists[idx];
+            ++idx;
+        }
+        std::cout << '\n';
+    }
 }

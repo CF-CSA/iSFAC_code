@@ -57,11 +57,17 @@ public:
     Cube(const std::string& filename, short verbosity_);
     ~Cube() = default;
     
-    //! getter functions
-    int numAtoms() const { return numAtoms_; }  
-    double mapValue(const Vec3&) const;
+    //! compute index from three grid coordinates
     size_t gridIndex(int ix, int iy, int iz) const;
+
+    //! getter functions
+    int numAtoms() const { return cbatoms_.size(); }
+    
+    //! get grid value at coordinate
+    double mapValue(const Vec3&) const;
+    //! get grid value by indices
     double mapValue(int ix, int iy, int iz) const;
+    
     // return position of atom idx
     Vec3 pos(unsigned short idx) const;
     
@@ -74,6 +80,7 @@ public:
     
     // return list of distances to position
     std::vector<double> distances_sq(const Vec3& pos) const;
+    
     // compute the trace of moduli of distances^2
     double deltaTrace(const Cube& cubemap) const;
     
@@ -81,6 +88,12 @@ public:
     Mat33 getRKabsch(const Cube& cube) const;
 //! compute pearson coefficient with a second grid
     double CC(const Cube& other, const Mat33& RKabsch) const;
+    
+    //! print some information about map
+    void info() const;
+    
+    //! make some checks, e.g. compare number of atoms, etc.
+    friend bool consistency_checks (Cube& one, Cube& other, unsigned char verbosity);
 
 };
 

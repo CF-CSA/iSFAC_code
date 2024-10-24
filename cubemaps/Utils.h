@@ -30,6 +30,9 @@ std::vector<Vec3> centroid (const std::vector<Vec3>& coords);
 //! compute Kabsch transpose for two sets of ordered vectors, aleady superposed
 Mat33 KabschR (const std::vector<Vec3>& fixed, const std::vector<Vec3> moved);
 
+//! compute upper triangle of distance matrix from list of coordinates
+std::vector<double> distance_matrix(const std::vector<Vec3>& coords);
+
 template <typename T> T CC(const std::vector<T>&, const std::vector<T>&);
 
 }

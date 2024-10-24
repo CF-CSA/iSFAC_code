@@ -38,6 +38,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/Atom.o \
 	${OBJECTDIR}/Cube.o \
 	${OBJECTDIR}/Mat33.o \
+	${OBJECTDIR}/Parser.o \
+	${OBJECTDIR}/Usage.o \
 	${OBJECTDIR}/Utils.o \
 	${OBJECTDIR}/Vec3.o \
 	${OBJECTDIR}/cbAtom.o \
@@ -82,6 +84,16 @@ ${OBJECTDIR}/Mat33.o: Mat33.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g `pkg-config --cflags gsl` -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Mat33.o Mat33.cpp
+
+${OBJECTDIR}/Parser.o: Parser.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g `pkg-config --cflags gsl` -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Parser.o Parser.cpp
+
+${OBJECTDIR}/Usage.o: Usage.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g `pkg-config --cflags gsl` -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Usage.o Usage.cpp
 
 ${OBJECTDIR}/Utils.o: Utils.cpp
 	${MKDIR} -p ${OBJECTDIR}

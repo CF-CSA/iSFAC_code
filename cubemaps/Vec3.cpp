@@ -5,10 +5,12 @@
  * Created on July 24, 2012, 11:12 PM
  */
 
+#include <iomanip>
+
 #include "Vec3.h"
 
 double Vec3::lengthsq() const {
-    return *this * *this;
+    return (*this) * (*this);
 }
 
 double operator*(const Vec3& v1, const Vec3& v2) {
@@ -54,4 +56,9 @@ Vec3 operator- (const Vec3& v1, const Vec3& v2) {
     v.z_ -= v2.z_;
     
     return v;
+}
+
+std::ostream& operator<< (std::ostream& outp, const Vec3& v) {
+    outp << std::fixed << std::setw(8) << std::setprecision(3) << v.x_ << ' ' << v.y_ << v.z_;
+    return outp;
 }
