@@ -9,7 +9,6 @@
 #include "Utils.h"
 #include <iostream>
 #include <numeric>
-#include <gsl/gsl_matrix_double.h>
 #include <gsl/gsl_linalg.h>
 /**
  * algorithm to create a surface grid at vdW radii of atoms, with a grid spacing 
@@ -127,11 +126,11 @@ Mat33 Utils::KabschR(const std::vector<Vec3>& fixed, const std::vector<Vec3> mov
             // now compute SVD of H
         }
     }
-    gsl_matrix* V = gsl_matrix_alloc(N,N);
+    gsl_matrix* VT = gsl_matrix_alloc(N,N);
     gsl_vector* S = gsl_vector_alloc(N);
     gsl_vector* work = gsl_vector_alloc(N);
     
-    int result = gsl_linalg_SV_decomp(H, V, S, work);
+    int result = gsl_linalg_SV_decomp(H, VT, S, work);
  
     
     /*
@@ -145,11 +144,46 @@ Mat33 Utils::KabschR(const std::vector<Vec3>& fixed, const std::vector<Vec3> mov
         for (int j = 0; j < 3; ++j) {
             double r(0.0);
             for (int k = 0; k < 3; ++k){
-                r += gsl_matrix_get(V, i, k)*gsl_matrix_get(H, j, k);
+                r += gsl_matrix_get(VT, i, k)*gsl_matrix_get(H, j, k);
             }
             R(i,j) = r;
         }
     }
-    
+    gsl_matrix_free(H);
+    gsl_matrix_free(VT);
+    gsl_vector_free(S);
     return R;
+}
+/**
+ * Computes the determinant of M , assumed to be square
+ * @param M
+ * @return 
+ */
+double Utils::determinant(const gsl_matrix* M) {
+    int signum;
+    gsl_permutation * p;
+    double det = 1.0;
+    
+    gsl_matrix* B = gsl_matrix_alloc(M->size1, M->size2);
+    gsl_matrix_memcpy(B, M);
+
+    p = gsl_permutation_alloc(B->size1);
+
+    gsl_linalg_LU_decomp(B, p, &signum);
+
+    det = 1.0;
+    for (int i = 0; i < B->size1; i++) {
+        for (int j = 0; j < B->size2; j++) {
+            if (i == j)
+                det *= gsl_matrix_get(B, i, j);
+        }
+    }
+
+    if (signum < 0.0)
+        det *= -1.0;
+    
+    gsl_matrix_free(B);
+    gsl_permutation_free(p);
+    return det;
+
 }

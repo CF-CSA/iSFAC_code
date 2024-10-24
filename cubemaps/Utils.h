@@ -19,6 +19,8 @@
 #include "Atom.h"
 
 #include <cmath>
+#include <gsl/gsl_matrix_double.h>
+
 
 
 namespace Utils {
@@ -29,6 +31,9 @@ std::vector<Vec3> centroid (const std::vector<Vec3>& coords);
 
 //! compute Kabsch transpose for two sets of ordered vectors, aleady superposed
 Mat33 KabschR (const std::vector<Vec3>& fixed, const std::vector<Vec3> moved);
+
+//! use gsl to determine determinant of matrix
+double determinant(const gsl_matrix* M);
 
 //! compute upper triangle of distance matrix from list of coordinates
 std::vector<double> distance_matrix(const std::vector<Vec3>& coords);

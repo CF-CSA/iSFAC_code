@@ -7,13 +7,13 @@ CND_BASEDIR=`pwd`
 CND_BUILDDIR=build
 CND_DISTDIR=dist
 # Debug configuration
-CND_PLATFORM_Debug=CLang-Linux
-CND_ARTIFACT_DIR_Debug=dist/Debug/CLang-Linux
+CND_PLATFORM_Debug=GNU-Linux
+CND_ARTIFACT_DIR_Debug=dist/Debug/GNU-Linux
 CND_ARTIFACT_NAME_Debug=cubemaps
-CND_ARTIFACT_PATH_Debug=dist/Debug/CLang-Linux/cubemaps
-CND_PACKAGE_DIR_Debug=dist/Debug/CLang-Linux/package
+CND_ARTIFACT_PATH_Debug=dist/Debug/GNU-Linux/cubemaps
+CND_PACKAGE_DIR_Debug=dist/Debug/GNU-Linux/package
 CND_PACKAGE_NAME_Debug=cubemaps.tar
-CND_PACKAGE_PATH_Debug=dist/Debug/CLang-Linux/package/cubemaps.tar
+CND_PACKAGE_PATH_Debug=dist/Debug/GNU-Linux/package/cubemaps.tar
 # Release configuration
 CND_PLATFORM_Release=CLang-Linux
 CND_ARTIFACT_DIR_Release=dist/Release/CLang-Linux

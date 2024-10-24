@@ -25,6 +25,7 @@ public:
     Mat33(const double& m00, const double& m01, const double& m02,
             const double& m10, const double& m11, const double& m12,
             const double& m20, const double& m21, const double& m22);
+    Mat33(bool unit);
     ~Mat33();
 
     // write access

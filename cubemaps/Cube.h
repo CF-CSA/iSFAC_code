@@ -86,7 +86,8 @@ public:
     
     //! get Kabsch rotation to rotate other cube onto this one
     Mat33 getRKabsch(const Cube& cube) const;
-//! compute pearson coefficient with a second grid
+    
+    //! compute pearson coefficient with a second grid
     double CC(const Cube& other, const Mat33& RKabsch) const;
     
     //! print some information about map

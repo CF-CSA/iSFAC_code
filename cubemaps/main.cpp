@@ -41,6 +41,20 @@ int main(int argc, char** argv) {
             reference.info();
             moving.info();
         }
+        
+        Mat33 kabschR = reference.getRKabsch(moving);
+        
+        double cc = reference.CC(moving, kabschR);
+        
+        std::cout << "---> CC between both maps: " << cc << '\n'
+                << "    with Kabsch Matrix \n" << kabschR << '\n';
+        
+        //! check for ID
+        kabschR = reference.getRKabsch(reference);
+        cc = reference.CC(reference, kabschR);
+        std::cout << "---> CC between itself: " << cc << '\n'
+                << "    with Kabsch Matrix \n" << kabschR << '\n';
+        
     }    catch (myExcepts::Usage& e) {
         usage();
     }    catch (std::logic_error& e) {

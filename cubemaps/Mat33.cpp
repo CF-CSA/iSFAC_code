@@ -16,9 +16,18 @@
 #include "Mat33.h"
 #include "Vec3.h"
 
+/**
+ * create a zero filled matrix
+ */
 Mat33::Mat33() {
     for (int i = 0; i < 9; ++i) {
         matrix_[i] = 0.0;
+    }
+}
+
+Mat33::Mat33(bool unit) : Mat33() {
+    if (unit) {
+        matrix_[0] = matrix_[4] = matrix_[8] = 1.0;
     }
 }
 
@@ -51,18 +60,18 @@ Mat33 operator*(const Mat33& m1, const Mat33& m2) {
     return M;
 }
 
-Vec3 operator* (const Mat33& m, const Vec3& xyz) {
+Vec3 operator*(const Mat33& m, const Vec3& xyz) {
     double x[3];
     for (int r = 0; r < 3; r++) {
-        x[r] = m(r,0)*xyz.x() + m(r,1)*xyz.y() + m(r,2)*xyz.z();
+        x[r] = m(r, 0) * xyz.x() + m(r, 1) * xyz.y() + m(r, 2) * xyz.z();
     }
     return Vec3(x[0], x[1], x[2]);
 }
 
-std::ostream& operator<< (std::ostream& outp, const Mat33& m) {
-    outp << std::setw(8) << std::setprecision(2) 
-            << m(0,0) << ' ' << m(0,1) << ' ' << m (0,2) << '\n'
-         << "    "   << m(1,0) << ' ' << m(1,1) << ' ' << m (1,2) << '\n'
-         << "    "   << m(2,0) << ' ' << m(2,1) << ' ' << m (2,2);
+std::ostream& operator<<(std::ostream& outp, const Mat33& m) {
+    outp << std::setw(8) << std::setprecision(2)
+            << m(0, 0) << ' ' << m(0, 1) << ' ' << m(0, 2) << '\n'
+            << "    " << m(1, 0) << ' ' << m(1, 1) << ' ' << m(1, 2) << '\n'
+            << "    " << m(2, 0) << ' ' << m(2, 1) << ' ' << m(2, 2);
     return outp;
 }

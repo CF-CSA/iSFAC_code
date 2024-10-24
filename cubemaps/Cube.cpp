@@ -170,10 +170,7 @@ double Cube::mapValue(const Vec3& pos) const{
     int iy = fy;
     int iz = fz;
     
-    if (ix < 0 || ix >= Vx_ || iy < 0 || iy >= Vy_ || iz < 0 || iz > Vz_) {
-        if (verbosity_ > 1) {
-            std::cout << "*** Error: coordinate " << " out of range\n";
-        }
+    if (ix < 0 || ix+1 >= Vx_ || iy < 0 || iy+1 >= Vy_ || iz < 0 || iz+1 > Vz_) {
         throw std::logic_error("Index out of range");
     }
     
@@ -359,8 +356,6 @@ Mat33 Cube::getRKabsch(const Cube& cube) const {
     
     //! return is Kabsch matrix and inverse of centre
     return kabschR;
-    
-    
 }
 
 /**
@@ -402,7 +397,10 @@ bool consistency_checks (Cube& one, Cube& two, unsigned char verbosity) {
     }
     const std::vector<double> d2two (Utils::distance_matrix(two.coords()));
     
+    return true;
+    
 }
+
 void Cube::info() const {
     std::vector<double> dists = Utils::distance_matrix(coords());
     std::cout << "---> Information about Cube map\n"
