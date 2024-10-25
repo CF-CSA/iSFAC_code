@@ -75,3 +75,11 @@ std::ostream& operator<<(std::ostream& outp, const Mat33& m) {
             << "    " << m(2, 0) << ' ' << m(2, 1) << ' ' << m(2, 2);
     return outp;
 }
+
+double Mat33::determinant() const {
+    double d = 0;
+    d  = matrix_[0] * (matrix_[4]*matrix_[8] - matrix_[5]*matrix_[7]);
+    d -= matrix_[1] * (matrix_[3]*matrix_[8] - matrix_[5]*matrix_[6]);
+    d += matrix_[2] * (matrix_[3]*matrix_[7] - matrix_[4]*matrix_[6]);
+    return d;
+}

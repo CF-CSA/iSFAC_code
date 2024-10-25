@@ -28,6 +28,9 @@ public:
     Mat33(bool unit);
     ~Mat33();
 
+    //! comput determinant of mtrix
+    double determinant() const;
+    
     // write access
     double& operator() (unsigned short idx1, unsigned short idx2) &{
         return matrix_ [3*idx1+idx2];

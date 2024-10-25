@@ -53,7 +53,8 @@ int main(int argc, char** argv) {
         kabschR = reference.getRKabsch(reference);
         cc = reference.CC(reference, kabschR);
         std::cout << "---> CC between itself: " << cc << '\n'
-                << "    with Kabsch Matrix \n" << kabschR << '\n';
+                << "    with Kabsch Matrix \n" << kabschR << '\n'
+                << "    det(K) = " << kabschR.determinant() << '\n';
         
     }    catch (myExcepts::Usage& e) {
         usage();

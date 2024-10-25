@@ -131,11 +131,23 @@ Mat33 Utils::KabschR(const std::vector<Vec3>& fixed, const std::vector<Vec3> mov
     gsl_vector* work = gsl_vector_alloc(N);
     
     int result = gsl_linalg_SV_decomp(H, VT, S, work);
+    
+    double det = Utils::determinant(H) * Utils::determinant(VT);
+    std::cout << "---> Determinant of U*VT = " << det << '\n';
+    if (det < 0.0) {
+        // flip sign of last column of U^T
+        // = last row of U^T
+        int row = H->size1 - 1;
+        for (int c = 0; c < H->size2; ++c) {
+            double h =  -1*gsl_matrix_get(H, row, c);
+            gsl_matrix_set(H, row, c, h);
+        }
+    }
  
     
     /*
      SVD of H results in U Sigma V^T
-     * R = V U^T where H is stored in H
+     * R = V U^T where U is stored in H
      * V should be a 3xN matrix, U^T a Nx3 matrix
      * R_ij = sum_k V_ik U^T _kj = sum_k V_ik*U_jk
      */
@@ -144,7 +156,7 @@ Mat33 Utils::KabschR(const std::vector<Vec3>& fixed, const std::vector<Vec3> mov
         for (int j = 0; j < 3; ++j) {
             double r(0.0);
             for (int k = 0; k < 3; ++k){
-                r += gsl_matrix_get(VT, i, k)*gsl_matrix_get(H, j, k);
+                r += gsl_matrix_get(VT, k, i)*gsl_matrix_get(H, j, k);
             }
             R(i,j) = r;
         }
@@ -152,10 +164,15 @@ Mat33 Utils::KabschR(const std::vector<Vec3>& fixed, const std::vector<Vec3> mov
     gsl_matrix_free(H);
     gsl_matrix_free(VT);
     gsl_vector_free(S);
+
+    det = R.determinant();
+    std::cout << "---> Determinant of R = " << R << '\n' << det << '\n';
+
     return R;
 }
 /**
  * Computes the determinant of M , assumed to be square
+ * based on gsl LU decomposition
  * @param M
  * @return 
  */
@@ -164,24 +181,15 @@ double Utils::determinant(const gsl_matrix* M) {
     gsl_permutation * p;
     double det = 1.0;
     
+    // make a copy of B to call LU_decomp
     gsl_matrix* B = gsl_matrix_alloc(M->size1, M->size2);
     gsl_matrix_memcpy(B, M);
 
     p = gsl_permutation_alloc(B->size1);
 
     gsl_linalg_LU_decomp(B, p, &signum);
+    gsl_linalg_LU_det(B, signum);
 
-    det = 1.0;
-    for (int i = 0; i < B->size1; i++) {
-        for (int j = 0; j < B->size2; j++) {
-            if (i == j)
-                det *= gsl_matrix_get(B, i, j);
-        }
-    }
-
-    if (signum < 0.0)
-        det *= -1.0;
-    
     gsl_matrix_free(B);
     gsl_permutation_free(p);
     return det;
