@@ -126,13 +126,34 @@ Mat33 Utils::KabschR(const std::vector<Vec3>& fixed, const std::vector<Vec3> mov
             // now compute SVD of H
         }
     }
-    gsl_matrix* VT = gsl_matrix_alloc(N,N);
+    gsl_matrix* V = gsl_matrix_alloc(N,N);
     gsl_vector* S = gsl_vector_alloc(N);
     gsl_vector* work = gsl_vector_alloc(N);
     
-    int result = gsl_linalg_SV_decomp(H, VT, S, work);
+    std::cout << "---> Before SVD for H, dimensions " << H->size1 << ' ' << H->size2 << '\n';
+    for (int r = 0; r < H->size1; ++r) {
+        std::cout << "   ";
+        for (int c = 0; c < H->size2; ++c) {
+            std::cout << gsl_matrix_get(H, r, c) << ' ';
+                    
+        }
+        std::cout << '\n';
+    }
+
+
+    int result = gsl_linalg_SV_decomp(H, V, S, work);
     
-    double det = Utils::determinant(H) * Utils::determinant(VT);
+    std::cout << "---> After SVD for H, dimensions " << H->size1 << ' ' << H->size2 << '\n';
+    for (int r = 0; r < H->size1; ++r) {
+        std::cout << "   ";
+        for (int c = 0; c < H->size2; ++c) {
+            std::cout << gsl_matrix_get(H, r, c) << ' ';
+                    
+        }
+        std::cout << '\n';
+    }
+    
+    double det = Utils::determinant(H) * Utils::determinant(V);
     std::cout << "---> Determinant of U*VT = " << det << '\n';
     if (det < 0.0) {
         // flip sign of last column of U^T
@@ -152,21 +173,35 @@ Mat33 Utils::KabschR(const std::vector<Vec3>& fixed, const std::vector<Vec3> mov
      * R_ij = sum_k V_ik U^T _kj = sum_k V_ik*U_jk
      */
     Mat33 R;
+    gsl_matrix* rgsl= gsl_matrix_alloc(3,3);
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; ++j) {
             double r(0.0);
             for (int k = 0; k < 3; ++k){
-                r += gsl_matrix_get(VT, k, i)*gsl_matrix_get(H, j, k);
+                r += gsl_matrix_get(V, i, k)*gsl_matrix_get(H, j, k);
             }
             R(i,j) = r;
+            gsl_matrix_set(rgsl, i, j, r);
         }
     }
+    
+    det = Utils::determinant(rgsl);
+    std::cout << "---> Determinant of Rgsl = " << det << '\n';
+        for (int r = 0; r < rgsl->size1; ++r) {
+        std::cout << "   ";
+        for (int c = 0; c < rgsl->size2; ++c) {
+            std::cout << gsl_matrix_get(rgsl, r, c) << ' ';
+                    
+        }
+        std::cout << '\n';
+    }
+
     gsl_matrix_free(H);
-    gsl_matrix_free(VT);
+    gsl_matrix_free(V);
     gsl_vector_free(S);
 
     det = R.determinant();
-    std::cout << "---> Determinant of R = " << R << '\n' << det << '\n';
+    std::cout << "---> Determinant of R = \n" << R << '\n' << det << '\n';
 
     return R;
 }
