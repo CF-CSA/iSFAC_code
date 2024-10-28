@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
             moving.info();
         }
         
-        Mat33 kabschR = reference.getRKabsch(moving);
+        Mat33 kabschR = reference.makeKabsch(moving);
         
         double cc = reference.CC(moving, kabschR);
         
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
                 << "    with Kabsch Matrix \n" << kabschR << '\n';
         
         //! check for ID
-        kabschR = reference.getRKabsch(reference);
+        kabschR = reference.makeKabsch(reference);
         cc = reference.CC(reference, kabschR);
         std::cout << "---> CC between itself: " << cc << '\n'
                 << "    with Kabsch Matrix \n" << kabschR << '\n'

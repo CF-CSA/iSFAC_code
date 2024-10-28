@@ -14,6 +14,7 @@
 #include "Cube.h"
 #include "myExceptions.h"
 #include "Utils.h"
+#include "kabsch.h"
 #include <fstream>
 #include <iostream>
 #include <cmath>
@@ -170,7 +171,7 @@ double Cube::mapValue(const Vec3& pos) const{
     int iy = fy;
     int iz = fz;
     
-    if (ix < 0 || ix+1 >= Vx_ || iy < 0 || iy+1 >= Vy_ || iz < 0 || iz+1 > Vz_) {
+    if (ix < 0 || ix+1 >= Vx_ || iy < 0 || iy+1 >= Vy_ || iz < 0 || iz+1 >= Vz_) {
         throw std::logic_error("Index out of range");
     }
     
@@ -265,8 +266,9 @@ double Cube::CC(const Cube& other, const Mat33& RKabsch) const {
                 try {
                     const double val = other.mapValue(pos);
                     g2.push_back(val);
+                    val = mapValue(ix, iy, iz);
                     // only push first value if transform pos is inside second grid
-                    g1.push_back(mapValue(ix, iy, iz));
+                    g1.push_back(val);
                 
                 }
                 // non-overlapping position
@@ -338,23 +340,51 @@ Vec3 Cube::centroid(int N) {
  * @param cube
  * @return 
  */
-Mat33 Cube::getRKabsch(const Cube& cube) const {
+Mat33 Cube::makeKabsch(const Cube& cube) const {
 
-    std::vector<Vec3> coords1 (this->coords());
-    
-    //! move copy of coordinates to centre
-    for (auto &x: coords1) {
-        x = x-centroid_;
+    // prepare calling kabsch function
+    gsl_matrix* fixed;
+    gsl_matrix* moved;
+
+    fixed = gsl_matrix_alloc(cbatoms_.size(), 3);
+    size_t idx(0);
+    for (auto x: cbatoms_) {
+        gsl_matrix_set(fixed, idx, 0, x.pos().x());
+        gsl_matrix_set(fixed, idx, 1, x.pos().y());
+        gsl_matrix_set(fixed, idx, 2, x.pos().z());
+        ++idx;
     }
-    //! same for other cube
-    std::vector<Vec3> coords2 (cube.coords());
-    for (auto &x: coords2) {
-        x = x- cube.centroid();
+    
+    moved = gsl_matrix_alloc(cbatoms_.size(),3);
+    idx = 0;
+    for (auto x: cube.cbatoms_) {
+        gsl_matrix_set(moved, idx, 0, x.pos().x());
+        gsl_matrix_set(moved, idx, 1, x.pos().y());
+        gsl_matrix_set(moved, idx, 2, x.pos().z());
+        ++idx;
     }
     
-    Mat33 kabschR =Utils::KabschR(coords1, coords2);
+    gsl_matrix* U = gsl_matrix_alloc(3,3);
+    gsl_vector* t = gsl_vector_alloc(3);
+   
+    kabsch(cbatoms_.size(), moved, fixed, U, t, NULL);
+    // Mat33 kabschR =Utils::KabschR(coords1, coords2);
+    Mat33 kabschR;
+    for (int r = 0; r < 3; ++r) {
+        for (int c = 0; c < 3; ++c) {
+            kabschR.operator ()(r,c) = gsl_matrix_get(U, r, c);
+        }
+    }
     
-    //! return is Kabsch matrix and inverse of centre
+    std::cout << "---> Det(U) = " << Utils::determinant(U) << std::endl;
+    std::cout << "---> KR = \n" << kabschR << std::endl;
+    
+    gsl_matrix_free(fixed);
+    gsl_matrix_free(moved);
+    gsl_matrix_free(U);
+    gsl_vector_free(t);
+    
+    //return is Kabsch matrix and inverse of centre
     return kabschR;
 }
 

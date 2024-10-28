@@ -85,7 +85,7 @@ public:
     double deltaTrace(const Cube& cubemap) const;
     
     //! get Kabsch rotation to rotate other cube onto this one
-    Mat33 getRKabsch(const Cube& cube) const;
+    Mat33 makeKabsch(const Cube& cube) const;
     
     //! compute pearson coefficient with a second grid
     double CC(const Cube& other, const Mat33& RKabsch) const;

@@ -43,6 +43,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/Utils.o \
 	${OBJECTDIR}/Vec3.o \
 	${OBJECTDIR}/cbAtom.o \
+	${OBJECTDIR}/kabsch.o \
 	${OBJECTDIR}/main.o
 
 
@@ -109,6 +110,11 @@ ${OBJECTDIR}/cbAtom.o: cbAtom.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g `pkg-config --cflags gsl` -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/cbAtom.o cbAtom.cpp
+
+${OBJECTDIR}/kabsch.o: kabsch.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g `pkg-config --cflags gsl` -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/kabsch.o kabsch.cpp
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
