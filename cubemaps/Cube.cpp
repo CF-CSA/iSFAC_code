@@ -264,7 +264,7 @@ double Cube::CC(const Cube& other, const Mat33& RKabsch) const {
                 // rotated grid and move to other centroid
                 pos = RKabsch*pos + other.centroid();
                 try {
-                    const double val = other.mapValue(pos);
+                    double val = other.mapValue(pos);
                     g2.push_back(val);
                     val = mapValue(ix, iy, iz);
                     // only push first value if transform pos is inside second grid
