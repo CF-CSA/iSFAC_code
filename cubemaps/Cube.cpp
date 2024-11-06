@@ -29,6 +29,14 @@ verbosity_(verbosity) {
     centroid();
 }
 
+/**
+ * According to http://gaussian.com/cubegen/
+ * Vx is the slow direction, and Vz is the fast direction
+ * in the first line, there could be a number for NVal, number of points per grid
+ * this might be useful for vector fields. My example cube files omit this entry, 
+ * and the below code doesn't capture both formats.
+ * @param fname
+ */
 void Cube::readMap(const std::string& fname) {
 
     std::ifstream inp(fname);
@@ -265,11 +273,16 @@ double Cube::CC(const Cube& other, const Mat33& RKabsch) const {
                 pos = RKabsch*pos + other.centroid();
                 try {
                     double val = other.mapValue(pos);
+                    if (verbosity_ > 1) {
+                        std::cout << std::fixed << std::setw(8) << std::setprecision(4) << val;
+                    }
                     g2.push_back(val);
                     val = mapValue(ix, iy, iz);
+                    if (verbosity_ > 1) {
+                        std::cout << std::fixed << std::setw(8) << std::setprecision(4) << val << '\n';
+                    }
                     // only push first value if transform pos is inside second grid
                     g1.push_back(val);
-                
                 }
                 // non-overlapping position
                 catch (std::logic_error& e) {
@@ -282,6 +295,11 @@ double Cube::CC(const Cube& other, const Mat33& RKabsch) const {
     if (verbosity_ > 1) {
         std::cout << "---> Number of overlapping gridpoints: " << g1.size() << '\n'
                 << "    Pearson CC for maps: " << cc << std::endl;
+    }
+    const double cc_gsl =Utils::CC_gsl(g1, g2);
+    if (verbosity_ > 1) {
+        std::cout << "---> Number of overlapping gridpoints: " << g1.size() << '\n'
+                << "    Pearson CC for maps from GSL CC: " << cc_gsl << std::endl;
     }
     return cc;
 }

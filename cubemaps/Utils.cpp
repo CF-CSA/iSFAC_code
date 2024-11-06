@@ -10,6 +10,7 @@
 #include <iostream>
 #include <numeric>
 #include <gsl/gsl_linalg.h>
+#include <gsl/gsl_statistics_double.h>
 /**
  * algorithm to create a surface grid at vdW radii of atoms, with a grid spacing 
  * og @c gridspacing (in Angstrom)
@@ -229,4 +230,20 @@ double Utils::determinant(const gsl_matrix* M) {
     gsl_permutation_free(p);
     return det;
 
+}
+
+double Utils::CC_gsl(const std::vector<double>& d1, const std::vector<double>& d2) {
+    gsl_vector* g1 = gsl_vector_alloc(d1.size());
+    gsl_vector* g2 = gsl_vector_alloc(d1.size());
+    
+    for (size_t i = 0; i < d1.size(); ++i) {
+        gsl_vector_set(g1, i, d1[i]);
+        gsl_vector_set(g2, i, d2[i]);
+    }
+        
+    const double cc = gsl_stats_correlation(&(d1[0]), 1, &(d2[0]), 1, d1.size());
+    
+    gsl_vector_free(g1);
+    gsl_vector_free(g2);
+    return cc;
 }

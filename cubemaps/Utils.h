@@ -40,6 +40,9 @@ std::vector<double> distance_matrix(const std::vector<Vec3>& coords);
 
 template <typename T> T CC(const std::vector<T>&, const std::vector<T>&);
 
+//! compute Pearson CC with GSL
+double CC_gsl(const std::vector<double>&, const std::vector<double>&);
+
 }
 /**
  * Calculates the correlation coefficient for two lists of numbers of type T.
