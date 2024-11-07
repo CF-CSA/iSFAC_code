@@ -51,11 +51,11 @@ int main(int argc, char** argv) {
                 << "    with Kabsch Matrix \n" << kabschR << '\n';
         
         //! check for ID
-        kabschR = reference.makeKabsch(reference);
-        cc = reference.CC(reference, kabschR);
-        std::cout << "---> CC between itself for " << parser.cubeRef() << ": " << cc << '\n'
-                << "    with Kabsch Matrix \n" << kabschR << '\n'
-                << "    det(K) = " << kabschR.determinant() << '\n';
+        const Mat33 kabschR_id = reference.makeKabsch(reference);
+        const double cc_id = reference.CC(reference, kabschR_id);
+        std::cout << "---> CC between itself for " << parser.cubeRef() << ": " << cc_id << '\n'
+                << "    with Kabsch Matrix \n" << kabschR_id << '\n'
+                << "    det(K) = " << kabschR_id.determinant() << '\n';
         
     }    catch (myExcepts::Usage& e) {
         usage();

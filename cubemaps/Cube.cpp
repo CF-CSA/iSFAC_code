@@ -46,7 +46,7 @@ void Cube::readMap(const std::string& fname) {
         std::getline(inp, h2_);
         double x, y, z;
         inp >> numAtoms_ >> x >> y >> z;
-        origin_ = Vec3(x,y,z);
+        origin_ = Vec3(x, y, z);
         inp >> Vx_ >> x >> y >> z;
         ex_ = Vec3(x, y, z);
 
@@ -63,6 +63,7 @@ void Cube::readMap(const std::string& fname) {
             inp >> Z >> q >> x >> y >> z;
             if (inp.fail()) {
                 std::cout << "---> Failure reading atom.\n";
+                throw myExcepts::Format("Premature end of Atom list in Cube file");
             } else if (verbosity_ > 3) {
                 std::cout << "---> Read atom " << Z << ' ' << q << ' '
                         << x << ' ' << y << ' ' << z << '\n';
@@ -84,9 +85,9 @@ void Cube::readMap(const std::string& fname) {
             }
             if (verbosity_ > 3)
                 //std::cout << g << '\n';
-            gridvalues_.push_back(g);
+                gridvalues_.push_back(g);
         }
-    }    catch (std::ifstream::failure e) {
+    } catch (std::ifstream::failure e) {
         std::cout << "*** Error reading Cube file. Check format\n";
         throw myExcepts::FileIO("Format Cube file");
     }
@@ -95,7 +96,7 @@ void Cube::readMap(const std::string& fname) {
         std::cout << "---> Info reading Cube file from " << fname << "\n"
                 << "    Number of atoms: " << numAtoms_ << '\n'
                 << "    Number of grid points: " << gridvalues_.size() << '\n'
-                << "    along x y z: " << Vx_ << ' ' << Vy_ << ' ' << Vz_ 
+                << "    along x y z: " << Vx_ << ' ' << Vy_ << ' ' << Vz_
                 << " = " << Vx_ * Vy_ * Vz_ << '\n';
     }
     // define ``reciprocal vectors'' for coordinate retrieval
@@ -105,14 +106,14 @@ void Cube::readMap(const std::string& fname) {
 }
 
 size_t Cube::gridIndex(int ix, int iy, int iz) const {
-    size_t idx = iz + Vz_*(iy + Vy_*ix);
+    size_t idx = iz + Vz_ * (iy + Vy_ * ix);
     return idx;
 }
 
-double Cube::mapValue(int ix, int iy, int iz) const{
+double Cube::mapValue(int ix, int iy, int iz) const {
     const size_t idx = gridIndex(ix, iy, iz);
-    assert (idx >= 0);
-    assert (idx < Vx_*Vy_*Vz_);
+    assert(idx >= 0);
+    assert(idx < Vx_ * Vy_ * Vz_);
     double val = gridvalues_[idx];
     return val;
 }
@@ -167,32 +168,46 @@ Would you like me to provide an example calculation or help implement this in co
  * @param 
  * @return 
  */
-double Cube::mapValue(const Vec3& pos) const{
-    
+double Cube::mapValue(const Vec3& pos) const {
+
     //! get coordinages of pos and ensure its inside grid
-    double fx = (pos - origin_)*ux_ / (ex_ * ux_);
-    double fy = (pos - origin_)*uy_ / (ey_ * uy_);
-    double fz = (pos - origin_)*uz_ / (ez_ * uz_);;
-        
+    double fx = (pos - origin_) * ux_ / (ex_ * ux_);
+    double fy = (pos - origin_) * uy_ / (ey_ * uy_);
+    double fz = (pos - origin_) * uz_ / (ez_ * uz_);
+    ;
+
     // low left index
-    int ix = fx;
-    int iy = fy;
-    int iz = fz;
-    
-    if (ix < 0 || ix+1 >= Vx_ || iy < 0 || iy+1 >= Vy_ || iz < 0 || iz+1 >= Vz_) {
+    int ix = std::round(fx);
+    int iy = std::round(fy);
+    int iz = std::round(fz);
+
+
+    if (ix < 0 || ix + 1 >= Vx_ || iy < 0 || iy + 1 >= Vy_ || iz < 0 || iz + 1 >= Vz_) {
         throw std::logic_error("Index out of range");
     }
-    
-    const double Vx00 = (1-fx)*mapValue(ix, iy, iz)     + fx*mapValue(ix+1, iy, iz);
-    const double Vx01 = (1-fx)*mapValue(ix, iy, iz+1)   + fx*mapValue(ix+1, iy, iz+1);
-    const double Vx10 = (1-fx)*mapValue(ix, iy+1, iz)   + fx*mapValue(ix+1,iy+1, iz);
-    const double Vx11 = (1-fx)*mapValue(ix, iy+1, iz+1) + fx*mapValue(ix+1, iy+1, iz+1);
-    
-    const double Vxy0 = (1-fy)*Vx00 + fy*Vx10;
-    const double Vxy1 = (1-fy)*Vx01 + fy*Vx11;
-    
-    const double Vxyz = (1-fz)*Vxy0 + fz*Vxy1;
-    
+
+    const double val = mapValue(ix, iy, iz);
+    if (verbosity_ > 2) {
+        std::cout << "---> Reading map value at position " << pos
+                << ", converted to indices "
+                << std::setw(4) << ix
+                << std::setw(4) << iy
+                << std::setw(4) << iz
+                << " = " << val << '\n';
+    }
+    // debugging (2024/11/07) just use the value at ix, iy, iz
+    return val;
+
+    const double Vx00 = (1 - fx) * mapValue(ix, iy, iz) + fx * mapValue(ix + 1, iy, iz);
+    const double Vx01 = (1 - fx) * mapValue(ix, iy, iz + 1) + fx * mapValue(ix + 1, iy, iz + 1);
+    const double Vx10 = (1 - fx) * mapValue(ix, iy + 1, iz) + fx * mapValue(ix + 1, iy + 1, iz);
+    const double Vx11 = (1 - fx) * mapValue(ix, iy + 1, iz + 1) + fx * mapValue(ix + 1, iy + 1, iz + 1);
+
+    const double Vxy0 = (1 - fy) * Vx00 + fy*Vx10;
+    const double Vxy1 = (1 - fy) * Vx01 + fy*Vx11;
+
+    const double Vxyz = (1 - fz) * Vxy0 + fz*Vxy1;
+
     return Vxyz;
 }
 
@@ -201,7 +216,7 @@ double Cube::mapValue(const Vec3& pos) const{
  */
 std::vector<Atom> Cube::atoms() const {
     std::vector<Atom> a;
-    for (auto c: cbatoms_) {
+    for (auto c : cbatoms_) {
         a.push_back(c.atom());
     }
     return a;
@@ -209,7 +224,7 @@ std::vector<Atom> Cube::atoms() const {
 
 std::vector<double> Cube::distances_sq(const Vec3& pos) const {
     std::vector<double> d2s(0);
-    for (auto atom: cbatoms_) {
+    for (auto atom : cbatoms_) {
         const double d = (pos - atom.pos()).lengthsq();
         d2s.push_back(d);
     }
@@ -250,7 +265,6 @@ double Cube::deltaTrace(const Cube& cubemap) const {
     return trsq;
 }
 
-
 /**
  * Compute Pearson Correlation coefficient with another cube. Grid values
  * take from this cube and interpolated for the second cube
@@ -258,7 +272,7 @@ double Cube::deltaTrace(const Cube& cubemap) const {
  * @return 
  */
 double Cube::CC(const Cube& other, const Mat33& RKabsch) const {
-    std::vector<double> g1, g2; 
+    std::vector<double> g1, g2;
     //! ensure cnetroid is properly computed
     g1.reserve(gridvalues_.size());
     g2.reserve(gridvalues_.size());
@@ -268,35 +282,36 @@ double Cube::CC(const Cube& other, const Mat33& RKabsch) const {
         for (int iy = 0; iy < Vy_; ++iy) {
             for (int iz = 0; iz < Vz_; ++iz) {
                 // compute coordinate of current grid point
-                Vec3 pos = shifted_origin + ix*ex_ + iy*ey_ + iz* ez_;
+                Vec3 pos = shifted_origin + ix * ex_ + iy * ey_ + iz* ez_;
                 // rotated grid and move to other centroid
-                pos = RKabsch*pos + other.centroid();
+                pos = RKabsch * pos + other.centroid();
                 try {
                     double val = other.mapValue(pos);
-                    if (verbosity_ > 1) {
-                        std::cout << std::fixed << std::setw(8) << std::setprecision(4) << val;
-                    }
                     g2.push_back(val);
                     val = mapValue(ix, iy, iz);
                     if (verbosity_ > 1) {
-                        std::cout << std::fixed << std::setw(8) << std::setprecision(4) << val << '\n';
+                        std::cout << "---> value from unrotated map at "
+                                << std::setw(4) << ix
+                                << std::setw(4) << iy
+                                << std::setw(4) << iz
+                                << " = " << val << '\n';
+
                     }
                     // only push first value if transform pos is inside second grid
                     g1.push_back(val);
-                }
-                // non-overlapping position
+                }                // non-overlapping position
                 catch (std::logic_error& e) {
                     continue;
                 }
             }
         }
     }
-    const double cc =Utils::CC<double>(g1, g2);
+    const double cc = Utils::CC<double>(g1, g2);
     if (verbosity_ > 1) {
         std::cout << "---> Number of overlapping gridpoints: " << g1.size() << '\n'
                 << "    Pearson CC for maps: " << cc << std::endl;
     }
-    const double cc_gsl =Utils::CC_gsl(g1, g2);
+    const double cc_gsl = Utils::CC_gsl(g1, g2);
     if (verbosity_ > 1) {
         std::cout << "---> Number of overlapping gridpoints: " << g1.size() << '\n'
                 << "    Pearson CC for maps from GSL CC: " << cc_gsl << std::endl;
@@ -321,7 +336,7 @@ double Cube::CC(const Cube& other, const Mat33& RKabsch) const {
 
 std::vector<Vec3> Cube::coords() const {
     std::vector<Vec3>X;
-    for (auto x: cbatoms_) {
+    for (auto x : cbatoms_) {
         Vec3 pos = x.pos();
         X.push_back(pos);
     }
@@ -337,18 +352,17 @@ std::vector<Vec3> Cube::coords() const {
 Vec3 Cube::centroid(int N) {
     std::vector<Vec3> coords;
     if (N < 0) {
-        for (auto x: cbatoms_) {
+        for (auto x : cbatoms_) {
             Vec3 p = x.pos();
             coords.push_back(p);
         }
-    }
-    else {
+    } else {
         for (int i = 0; i < N; ++i) {
             Vec3 p = cbatoms_[i].pos();
             coords.push_back(p);
         }
     }
-    centroid_ = 1./coords.size()*std::accumulate(coords.begin(), coords.end(), Vec3(0,0,0));
+    centroid_ = 1. / coords.size() * std::accumulate(coords.begin(), coords.end(), Vec3(0, 0, 0));
     return centroid_;
 }
 
@@ -366,42 +380,42 @@ Mat33 Cube::makeKabsch(const Cube& cube) const {
 
     fixed = gsl_matrix_alloc(cbatoms_.size(), 3);
     size_t idx(0);
-    for (auto x: cbatoms_) {
+    for (auto x : cbatoms_) {
         gsl_matrix_set(fixed, idx, 0, x.pos().x());
         gsl_matrix_set(fixed, idx, 1, x.pos().y());
         gsl_matrix_set(fixed, idx, 2, x.pos().z());
         ++idx;
     }
-    
-    moved = gsl_matrix_alloc(cbatoms_.size(),3);
+
+    moved = gsl_matrix_alloc(cbatoms_.size(), 3);
     idx = 0;
-    for (auto x: cube.cbatoms_) {
+    for (auto x : cube.cbatoms_) {
         gsl_matrix_set(moved, idx, 0, x.pos().x());
         gsl_matrix_set(moved, idx, 1, x.pos().y());
         gsl_matrix_set(moved, idx, 2, x.pos().z());
         ++idx;
     }
-    
-    gsl_matrix* U = gsl_matrix_alloc(3,3);
+
+    gsl_matrix* U = gsl_matrix_alloc(3, 3);
     gsl_vector* t = gsl_vector_alloc(3);
-   
+
     kabsch(cbatoms_.size(), moved, fixed, U, t, NULL);
     // Mat33 kabschR =Utils::KabschR(coords1, coords2);
     Mat33 kabschR;
     for (int r = 0; r < 3; ++r) {
         for (int c = 0; c < 3; ++c) {
-            kabschR.operator ()(r,c) = gsl_matrix_get(U, r, c);
+            kabschR.operator()(r, c) = gsl_matrix_get(U, r, c);
         }
     }
-    
+
     std::cout << "---> Det(U) = " << Utils::determinant(U) << std::endl;
     std::cout << "---> KR = \n" << kabschR << std::endl;
-    
+
     gsl_matrix_free(fixed);
     gsl_matrix_free(moved);
     gsl_matrix_free(U);
     gsl_vector_free(t);
-    
+
     //return is Kabsch matrix and inverse of centre
     return kabschR;
 }
@@ -413,52 +427,51 @@ Mat33 Cube::makeKabsch(const Cube& cube) const {
  * @param other
  * @return 
  */
-bool consistency_checks (Cube& one, Cube& two, unsigned char verbosity) {
+bool consistency_checks(Cube& one, Cube& two, unsigned char verbosity) {
     int N = std::min(one.numAtoms(), two.numAtoms());
-    
+
     if (N < one.numAtoms()) {
         if (verbosity > 1) {
             std::cout << "---> Consistency check: limiting number of atoms for first map from "
                     << one.numAtoms() << " to " << N << '\n';
         }
-        one.cbatoms_ = std::vector<cbAtom> (one.cbatoms_.begin(), one.cbatoms_.begin()+N);
+        one.cbatoms_ = std::vector<cbAtom> (one.cbatoms_.begin(), one.cbatoms_.begin() + N);
         one.centroid(-1);
     }
-    
     else if (N < two.numAtoms()) {
         if (verbosity > 1) {
             std::cout << "---> Consistency check: limiting number of atoms for second map from "
                     << two.numAtoms() << " to " << N << '\n';
         }
-        two.cbatoms_ = std::vector<cbAtom> (two.cbatoms_.begin(), two.cbatoms_.begin()+N);
+        two.cbatoms_ = std::vector<cbAtom> (two.cbatoms_.begin(), two.cbatoms_.begin() + N);
         two.centroid(-1);
     }
-    
+
     one.info();
     two.info();
     if (verbosity > 2) {
-        std::cout << "---> Producing distance matrix for first map with " << one.coords().size() << " coordinates.\n"; 
+        std::cout << "---> Producing distance matrix for first map with " << one.coords().size() << " coordinates.\n";
     }
-    const std::vector<double> d2one (Utils::distance_matrix(one.coords()));
+    const std::vector<double> d2one(Utils::distance_matrix(one.coords()));
     if (verbosity > 2) {
-        std::cout << "---> Producing distance matrix for second map with " << two.coords().size() << " coordinates.\n"; 
+        std::cout << "---> Producing distance matrix for second map with " << two.coords().size() << " coordinates.\n";
     }
-    const std::vector<double> d2two (Utils::distance_matrix(two.coords()));
-    
+    const std::vector<double> d2two(Utils::distance_matrix(two.coords()));
+
     return true;
-    
+
 }
 
 void Cube::info() const {
     std::vector<double> dists = Utils::distance_matrix(coords());
     std::cout << "---> Information about Cube map\n"
             << "   Number of atoms: " << cbatoms_.size() << '\n';
-    for (int idx = 0; idx < dists.size(); ) {
-        const int tabs = idx / (cbatoms_.size()-1) +1;
+    for (int idx = 0; idx < dists.size();) {
+        const int tabs = idx / (cbatoms_.size() - 1) + 1;
         for (int i = 0; i < tabs; ++i) {
             std::cout << std::setw(7) << ' ';
         }
-        for (int i = tabs; i  < cbatoms_.size(); ++i) {
+        for (int i = tabs; i < cbatoms_.size(); ++i) {
             std::cout << std::fixed << std::setw(7) << std::setprecision(2) << dists[idx];
             ++idx;
         }

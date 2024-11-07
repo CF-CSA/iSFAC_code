@@ -59,6 +59,8 @@ Vec3 operator- (const Vec3& v1, const Vec3& v2) {
 }
 
 std::ostream& operator<< (std::ostream& outp, const Vec3& v) {
-    outp << std::fixed << std::setw(8) << std::setprecision(3) << v.x_ << ' ' << v.y_ << v.z_;
+    outp << std::fixed << std::setw(8) << std::setprecision(3) << v.x_ 
+            << std::fixed << std::setw(8) << std::setprecision(3) << v.y_ 
+            << std::fixed << std::setw(8) << std::setprecision(3) << v.z_;
     return outp;
 }
