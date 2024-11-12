@@ -41,25 +41,18 @@ int main(int argc, char** argv) {
             reference.info();
             moving.info();
         }
-        
+
         Mat33 kabschR = reference.makeKabsch(moving);
-        
+
         double cc = reference.CC(moving, kabschR);
-        
-        std::cout << "---> CC between  maps: " << parser.cubeRef() << " and " 
+
+        std::cout << "---> CC between  maps: " << parser.cubeRef() << " and "
                 << parser.cubeMoving() << ": " << cc << '\n'
                 << "    with Kabsch Matrix \n" << kabschR << '\n';
-        
-        //! check for ID
-        const Mat33 kabschR_id = reference.makeKabsch(reference);
-        const double cc_id = reference.CC(reference, kabschR_id);
-        std::cout << "---> CC between itself for " << parser.cubeRef() << ": " << cc_id << '\n'
-                << "    with Kabsch Matrix \n" << kabschR_id << '\n'
-                << "    det(K) = " << kabschR_id.determinant() << '\n';
-        
-    }    catch (myExcepts::Usage& e) {
+
+    } catch (myExcepts::Usage& e) {
         usage();
-    }    catch (std::logic_error& e) {
+    } catch (std::logic_error& e) {
         // just finish
     }
     return 0;
