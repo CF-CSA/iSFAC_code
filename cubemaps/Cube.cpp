@@ -174,7 +174,6 @@ double Cube::mapValue(const Vec3& pos) const {
     double fx = (pos - origin_) * ux_ / (ex_ * ux_);
     double fy = (pos - origin_) * uy_ / (ey_ * uy_);
     double fz = (pos - origin_) * uz_ / (ez_ * uz_);
-    ;
 
     // low left index
     int ix = std::round(fx);
@@ -277,7 +276,8 @@ double Cube::CC(const Cube& other, const Mat33& RKabsch) const {
     g1.reserve(gridvalues_.size());
     g2.reserve(gridvalues_.size());
     const Vec3 shifted_origin = origin_ - centroid_;
-    // get values from second cube
+    // iterate through this cube, convert position to respective position
+    // in other cube and get value from there
     for (int ix = 0; ix < Vx_; ++ix) {
         for (int iy = 0; iy < Vy_; ++iy) {
             for (int iz = 0; iz < Vz_; ++iz) {
@@ -288,6 +288,15 @@ double Cube::CC(const Cube& other, const Mat33& RKabsch) const {
                 try {
                     double val = other.mapValue(pos);
                     g2.push_back(val);
+                    if (verbosity_ > 1) {
+                        std::cout << "---> Transformin indices "
+                                << std::setw(4) << ix
+                                << std::setw(4) << iy
+                                << std::setw(4) << iz
+				<< " to position " << pos << " with map value "
+                                << " = " << val << '\n';
+
+                    }
                     val = mapValue(ix, iy, iz);
                     if (verbosity_ > 1) {
                         std::cout << "---> value from unrotated map at "
