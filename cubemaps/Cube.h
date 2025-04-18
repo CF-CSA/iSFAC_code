@@ -50,7 +50,7 @@ private:
 
     void readMap(const std::string& fname);
     //! compute geometric centroid ('CoM') for N coordinates
-    Vec3 centroid(int N = -1);
+    Vec3 centroid(int N);
 
 public:
     Cube() = default;
@@ -85,10 +85,13 @@ public:
     double deltaTrace(const Cube& cubemap) const;
     
     //! get Kabsch rotation to rotate other cube onto this one
-    Mat33 makeKabsch(const Cube& cube) const;
+    std::pair<Mat33, Vec3> makeKabsch(const Cube& cube) const;
+    
+    //! print coordinates before and after moving with Kabsch transform
+    void transform_coords(const std::pair<Mat33,Vec3>& kabschTrafo, const Vec3& ctr_target);
     
     //! compute pearson coefficient with a second grid
-    double CC(const Cube& other, const Mat33& RKabsch) const;
+    double CC(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) const;
     
     //! print some information about map
     void info() const;

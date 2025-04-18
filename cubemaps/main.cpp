@@ -42,13 +42,10 @@ int main(int argc, char** argv) {
             moving.info();
         }
 
-        Mat33 kabschR = reference.makeKabsch(moving);
-
-        double cc = reference.CC(moving, kabschR);
-
-        std::cout << "---> CC between  maps: " << parser.cubeRef() << " and "
-                << parser.cubeMoving() << ": " << cc << '\n'
-                << "    with Kabsch Matrix \n" << kabschR << '\n';
+        std::pair<Mat33, Vec3> kabschTrafo = reference.makeKabsch(moving);
+        moving.transform_coords(kabschTrafo, reference.centroid());
+        
+        double cc = moving.CC(reference, kabschTrafo);
 
     } catch (myExcepts::Usage& e) {
         usage();

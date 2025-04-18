@@ -15,6 +15,7 @@
 #include "myExceptions.h"
 #include "Utils.h"
 #include "kabsch.h"
+#include "defines.h"
 #include <fstream>
 #include <iostream>
 #include <cmath>
@@ -40,6 +41,8 @@ verbosity_(verbosity) {
 void Cube::readMap(const std::string& fname) {
 
     std::ifstream inp(fname);
+    // scale for Bohr radius
+    double a0toA = Physics::a0;
 
     try {
         std::getline(inp, h1_);
@@ -48,13 +51,30 @@ void Cube::readMap(const std::string& fname) {
         inp >> numAtoms_ >> x >> y >> z;
         origin_ = Vec3(x, y, z);
         inp >> Vx_ >> x >> y >> z;
-        ex_ = Vec3(x, y, z);
+        if (Vx_ < 0) {
+            ex_ = Vec3(x, y, z);
+        } else {
+            ex_ = Vec3(a0toA*x, a0toA*y, a0toA * z);
+        }
 
         inp >> Vy_ >> x >> y >> z;
-        ey_ = Vec3(x, y, z);
+        if (Vy_ < 0) { // unit already in A
+            ey_ = Vec3(x, y, z);
+        } else {
+            ey_ = Vec3(a0toA*x, a0toA*y, a0toA * z);
+        }
 
         inp >> Vz_ >> x >> y >> z;
-        ez_ = Vec3(x, y, z);
+        if (Vz_ < 0) {// unit already in A
+            ez_ = Vec3(x, y, z);
+        } else {
+            ez_ = Vec3(a0toA*x, a0toA*y, a0toA * z);
+        }
+
+
+        if (Vx_ < 0 && Vy_ < 0 && Vz_ < 0) {
+            a0toA = 1.0;
+        }
 
         for (int i = 0; i < numAtoms_; ++i) {
             int Z;
@@ -64,11 +84,11 @@ void Cube::readMap(const std::string& fname) {
             if (inp.fail()) {
                 std::cout << "---> Failure reading atom.\n";
                 throw myExcepts::Format("Premature end of Atom list in Cube file");
-            } else if (verbosity_ > 3) {
+            } else if (verbosity_ > 2) {
                 std::cout << "---> Read atom " << Z << ' ' << q << ' '
-                        << x << ' ' << y << ' ' << z << '\n';
+                        << a0toA*x << ' ' << a0toA*y << ' ' << a0toA*z << '\n';
             }
-            cbatoms_.push_back(cbAtom(Z, q, x, y, z));
+            cbatoms_.push_back(cbAtom(Z, q, a0toA*x, a0toA*y, a0toA * z));
         }
 
         if (inp.eof()) {
@@ -267,48 +287,52 @@ double Cube::deltaTrace(const Cube& cubemap) const {
 /**
  * Compute Pearson Correlation coefficient with another cube. Grid values
  * take from this cube and interpolated for the second cube
+ * KabschTrafo must be computed for this map
  * @param cube
  * @return 
  */
-double Cube::CC(const Cube& other, const Mat33& RKabsch) const {
+double Cube::CC(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) const {
+    const Mat33 U = KabschTrafo.first;
+    const Vec3 T = KabschTrafo.second;
     std::vector<double> g1, g2;
-    //! ensure cnetroid is properly computed
+    //! ensure centroid is properly computed
+    //
     g1.reserve(gridvalues_.size());
     g2.reserve(gridvalues_.size());
-    const Vec3 shifted_origin = origin_ - centroid_;
-    // iterate through this cube, convert position to respective position
+
+    // iterate through the other cube convert point to respective position
     // in other cube and get value from there
     for (int ix = 0; ix < Vx_; ++ix) {
         for (int iy = 0; iy < Vy_; ++iy) {
             for (int iz = 0; iz < Vz_; ++iz) {
                 // compute coordinate of current grid point
-                Vec3 pos = shifted_origin + ix * ex_ + iy * ey_ + iz* ez_;
-                // rotated grid and move to other centroid
-                pos = RKabsch * pos + other.centroid();
+                Vec3 pos = origin_ + ix * ex_ + iy * ey_ + iz* ez_;
+                if (verbosity_ > 1) {
+                    std::cout << "---> Indices "
+                            << std::setw(3) << ix
+                            << std::setw(3) << iy
+                            << std::setw(3) << iz
+                            << " correspond to position " << pos;
+                }
+                pos = pos - centroid_;
+                // compute position of grid index corresponding to position
+                // in other map
+                pos = U * pos + T;
+                if (verbosity_ > 1) {
+                    std::cout << " after trafo: " << pos << '\n';
+                }
                 try {
                     double val = other.mapValue(pos);
                     g2.push_back(val);
-                    if (verbosity_ > 1) {
-                        std::cout << "---> Transformin indices "
-                                << std::setw(4) << ix
-                                << std::setw(4) << iy
-                                << std::setw(4) << iz
-				<< " to position " << pos << " with map value "
-                                << " = " << val << '\n';
-
-                    }
                     val = mapValue(ix, iy, iz);
                     if (verbosity_ > 1) {
                         std::cout << "---> value from unrotated map at "
-                                << std::setw(4) << ix
-                                << std::setw(4) << iy
-                                << std::setw(4) << iz
                                 << " = " << val << '\n';
 
                     }
                     // only push first value if transform pos is inside second grid
                     g1.push_back(val);
-                }                // non-overlapping position
+                }// non-overlapping position
                 catch (std::logic_error& e) {
                     continue;
                 }
@@ -381,7 +405,7 @@ Vec3 Cube::centroid(int N) {
  * @param cube
  * @return 
  */
-Mat33 Cube::makeKabsch(const Cube& cube) const {
+std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& cube) const {
 
     // prepare calling kabsch function
     gsl_matrix* fixed;
@@ -417,8 +441,17 @@ Mat33 Cube::makeKabsch(const Cube& cube) const {
         }
     }
 
+    Vec3 kabschT(gsl_vector_get(t, 0), gsl_vector_get(t, 1), gsl_vector_get(t, 2));
+
+
     std::cout << "---> Det(U) = " << Utils::determinant(U) << std::endl;
     std::cout << "---> KR = \n" << kabschR << std::endl;
+    std::cout << "---> Translation: " << gsl_vector_get(t, 0) << ' '
+            << gsl_vector_get(t, 1) << ' '
+            << gsl_vector_get(t, 2) << ' '
+            << std::endl;
+
+    std::pair<Mat33, Vec3> K(kabschR, kabschT);
 
     gsl_matrix_free(fixed);
     gsl_matrix_free(moved);
@@ -426,7 +459,17 @@ Mat33 Cube::makeKabsch(const Cube& cube) const {
     gsl_vector_free(t);
 
     //return is Kabsch matrix and inverse of centre
-    return kabschR;
+    return K;
+}
+
+void Cube::transform_coords(const std::pair<Mat33, Vec3>& kabschTrafo, const Vec3& ctr_target) {
+    const Mat33 M = kabschTrafo.first;
+    const Vec3 T = kabschTrafo.second;
+    for (const auto& a : cbatoms_) {
+        Vec3 x = a.pos() - centroid_;
+        x = M * x + T + centroid_;
+        std::cout << a.Z() << " before: " << a.pos() << " after: " << x << '\n';
+    }
 }
 
 /**
@@ -439,33 +482,36 @@ Mat33 Cube::makeKabsch(const Cube& cube) const {
 bool consistency_checks(Cube& one, Cube& two, unsigned char verbosity) {
     int N = std::min(one.numAtoms(), two.numAtoms());
 
-    if (N < one.numAtoms()) {
-        if (verbosity > 1) {
-            std::cout << "---> Consistency check: limiting number of atoms for first map from "
-                    << one.numAtoms() << " to " << N << '\n';
-        }
-        one.cbatoms_ = std::vector<cbAtom> (one.cbatoms_.begin(), one.cbatoms_.begin() + N);
-        one.centroid(-1);
+    if (verbosity > 1) {
+        std::cout << "---> Consistency check: limiting number of atoms in both maps to " << N << '\n';
     }
-    else if (N < two.numAtoms()) {
-        if (verbosity > 1) {
-            std::cout << "---> Consistency check: limiting number of atoms for second map from "
-                    << two.numAtoms() << " to " << N << '\n';
-        }
-        two.cbatoms_ = std::vector<cbAtom> (two.cbatoms_.begin(), two.cbatoms_.begin() + N);
-        two.centroid(-1);
-    }
+    one.cbatoms_.resize(N);
+    two.cbatoms_.resize(N);
+
+    one.centroid(-1);
+    two.centroid(-1);
 
     one.info();
     two.info();
-    if (verbosity > 2) {
+    if (verbosity > 1) {
         std::cout << "---> Producing distance matrix for first map with " << one.coords().size() << " coordinates.\n";
     }
     const std::vector<double> d2one(Utils::distance_matrix(one.coords()));
-    if (verbosity > 2) {
+    if (verbosity > 1) {
         std::cout << "---> Producing distance matrix for second map with " << two.coords().size() << " coordinates.\n";
     }
     const std::vector<double> d2two(Utils::distance_matrix(two.coords()));
+    // compute sum pairwise distances
+    std::vector<double>::const_iterator it1, it2;
+    it2 = d2two.begin();
+    double sum(0.0);
+    for (const auto x1 : d2one) {
+        sum += std::abs(x1 - (*it2));
+        ++it2;
+    }
+    if (verbosity > 1) {
+        std::cout << "---> Sum of absolute differences between distance matrices: " << sum << '\n';
+    }
 
     return true;
 

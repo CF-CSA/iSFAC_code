@@ -56,6 +56,17 @@ static inline void gsl_vector_cross(
 
 #define NORM_EPS 0.00000001
 
+/**
+ * compute Kabsch transformation from a moving target to
+ * a reference target 
+ * @param size
+ * @param X 
+ * @param Y input reference coordinates, 
+ * @param U return of rotation
+ * @param t return of translation
+ * @param s scaling, should be 1.0
+ * @return 
+ */
 int kabsch(
         unsigned int size, /* the number of points */
         gsl_matrix *X, /* the points to be moved */
