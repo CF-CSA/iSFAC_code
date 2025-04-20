@@ -34,6 +34,8 @@
 
 #include "kabsch.h"
 
+#include<iostream>
+
 #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_blas.h>
 
@@ -101,6 +103,16 @@ int kabsch(
         gsl_vector_add(cy, &row.vector);
     }
     gsl_vector_scale(cy, n);
+    
+    std::cout << "--->Kabsch, centroid X = " 
+            << gsl_vector_get(cx, 0) << ' ' 
+            << gsl_vector_get(cx, 1) << ' ' 
+            << gsl_vector_get(cx, 2) << '\n';
+
+        std::cout << "--->Kabsch, centroid Y = " 
+            << gsl_vector_get(cy, 0) << ' ' 
+            << gsl_vector_get(cy, 1) << ' ' 
+            << gsl_vector_get(cy, 2) << '\n';
 
     /* move X to origin */
     for (i = size; i > 0;) {

@@ -300,7 +300,7 @@ double Cube::CC(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) co
     g1.reserve(gridvalues_.size());
     g2.reserve(gridvalues_.size());
 
-    // iterate through the other cube convert point to respective position
+    // iterate through the reference cube convert point to respective position
     // in other cube and get value from there
     for (int ix = 0; ix < Vx_; ++ix) {
         for (int iy = 0; iy < Vy_; ++iy) {
@@ -317,18 +317,21 @@ double Cube::CC(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) co
                 pos = pos - centroid_;
                 // compute position of grid index corresponding to position
                 // in other map
-                pos = U * pos + T;
+                pos = U * pos + T + other.centroid();
                 if (verbosity_ > 1) {
                     std::cout << " after trafo: " << pos << '\n';
                 }
                 try {
                     double val = other.mapValue(pos);
                     g2.push_back(val);
+                    if (verbosity_ > 1) {
+                        std::cout << "---> value from moving map at "
+                                << pos << " = " << val << '\n';
+                    }
                     val = mapValue(ix, iy, iz);
                     if (verbosity_ > 1) {
-                        std::cout << "---> value from unrotated map at "
-                                << " = " << val << '\n';
-
+                        std::cout << "---> value from reference map at "
+                                << ix << ' ' << iy << ' ' << iz << " = " << val << '\n';
                     }
                     // only push first value if transform pos is inside second grid
                     g1.push_back(val);
@@ -396,6 +399,9 @@ Vec3 Cube::centroid(int N) {
         }
     }
     centroid_ = 1. / coords.size() * std::accumulate(coords.begin(), coords.end(), Vec3(0, 0, 0));
+    if (verbosity_ > 1) {
+        std::cout << "---> Cntroid: " << centroid_ <<'\n';
+    }
     return centroid_;
 }
 
@@ -405,11 +411,14 @@ Vec3 Cube::centroid(int N) {
  * @param cube
  * @return 
  */
-std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& cube) const {
+std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other) const {
 
     // prepare calling kabsch function
     gsl_matrix* fixed;
     gsl_matrix* moved;
+    // compute Kabsch transform where there is fixed, and this is moved
+    // that way, iterating through the map of fixed can be transformed to 
+    // moved
 
     fixed = gsl_matrix_alloc(cbatoms_.size(), 3);
     size_t idx(0);
@@ -422,7 +431,7 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& cube) const {
 
     moved = gsl_matrix_alloc(cbatoms_.size(), 3);
     idx = 0;
-    for (auto x : cube.cbatoms_) {
+    for (auto x : other.cbatoms_) {
         gsl_matrix_set(moved, idx, 0, x.pos().x());
         gsl_matrix_set(moved, idx, 1, x.pos().y());
         gsl_matrix_set(moved, idx, 2, x.pos().z());

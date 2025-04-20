@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
             moving.info();
         }
 
-        std::pair<Mat33, Vec3> kabschTrafo = reference.makeKabsch(moving);
+        std::pair<Mat33, Vec3> kabschTrafo = moving.makeKabsch(reference);
         moving.transform_coords(kabschTrafo, reference.centroid());
         
         double cc = moving.CC(reference, kabschTrafo);
