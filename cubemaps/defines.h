@@ -15,7 +15,7 @@
 #define DEFINES_H
 
 namespace Physics {
-    const double a0 = 0.5291772; // Bohr radius in A
+    const double a0 = 0.5291772; // Bohr radius in A A/Bohr
 }
 namespace PSE {
     /**
