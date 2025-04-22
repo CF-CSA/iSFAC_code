@@ -48,13 +48,16 @@ void Cube::readMap(const std::string& fname) {
         std::getline(inp, h1_);
         std::getline(inp, h2_);
         double x, y, z;
-        inp >> numAtoms_ >> x >> y >> z;
-        origin_ = Vec3(x, y, z);
+        double orgx, orgy, orgz;
+        inp >> numAtoms_ >> orgx >> orgy >> orgz;
+        
         inp >> Vx_ >> x >> y >> z;
         if (Vx_ < 0) {
             ex_ = Vec3(x, y, z);
+            
         } else {
             ex_ = Vec3(a0toA*x, a0toA*y, a0toA * z);
+            orgx *= a0toA;
         }
 
         inp >> Vy_ >> x >> y >> z;
@@ -62,6 +65,7 @@ void Cube::readMap(const std::string& fname) {
             ey_ = Vec3(x, y, z);
         } else {
             ey_ = Vec3(a0toA*x, a0toA*y, a0toA * z);
+            orgy *= a0toA;
         }
 
         inp >> Vz_ >> x >> y >> z;
@@ -69,7 +73,9 @@ void Cube::readMap(const std::string& fname) {
             ez_ = Vec3(x, y, z);
         } else {
             ez_ = Vec3(a0toA*x, a0toA*y, a0toA * z);
+            orgz *= a0toA;
         }
+        origin_ = Vec3(orgx, orgy, orgz);
 
 
         if (Vx_ < 0 && Vy_ < 0 && Vz_ < 0) {
@@ -81,14 +87,17 @@ void Cube::readMap(const std::string& fname) {
             double q;
             double x, y, z;
             inp >> Z >> q >> x >> y >> z;
+            if (Vx_ > 0) x *= a0toA;
+            if (Vy_ > 0) y *= a0toA;
+            if (Vz_ > 0) z *= a0toA;
             if (inp.fail()) {
                 std::cout << "---> Failure reading atom.\n";
                 throw myExcepts::Format("Premature end of Atom list in Cube file");
             } else if (verbosity_ > 2) {
                 std::cout << "---> Read atom " << Z << ' ' << q << ' '
-                        << a0toA*x << ' ' << a0toA*y << ' ' << a0toA*z << '\n';
+                        << x << ' ' << y << ' ' << z << '\n';
             }
-            cbatoms_.push_back(cbAtom(Z, q, a0toA*x, a0toA*y, a0toA * z));
+            cbatoms_.push_back(cbAtom(Z, q, x, y, z));
         }
 
         if (inp.eof()) {
@@ -423,6 +432,7 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other) const {
     fixed = gsl_matrix_alloc(cbatoms_.size(), 3);
     size_t idx(0);
     for (auto x : cbatoms_) {
+        if (x.Z() == 1) continue;
         gsl_matrix_set(fixed, idx, 0, x.pos().x());
         gsl_matrix_set(fixed, idx, 1, x.pos().y());
         gsl_matrix_set(fixed, idx, 2, x.pos().z());
@@ -432,6 +442,7 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other) const {
     moved = gsl_matrix_alloc(cbatoms_.size(), 3);
     idx = 0;
     for (auto x : other.cbatoms_) {
+        if (x.Z() == 1) continue;
         gsl_matrix_set(moved, idx, 0, x.pos().x());
         gsl_matrix_set(moved, idx, 1, x.pos().y());
         gsl_matrix_set(moved, idx, 2, x.pos().z());
