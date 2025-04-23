@@ -23,6 +23,7 @@ void usage() {
               << "!         OPTIONS:                                              !\n"
 	      << "!        -R     :  reference (non-moving) map                   !\n"
 	      << "!        -M     :  moving map                                   !\n"
+              << "!        -g d   : set grid spacing for VdW surface [0.4A]       !\n"
               << "!        -v num : set verbosity to num                          !\n"
               << "!        -h / -?: print this help message and exit              !\n"
               << "!---------------------------------------------------------------!\n"

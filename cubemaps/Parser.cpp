@@ -14,6 +14,7 @@
 Parser::Parser(int argc, const char* const argv[]) :
 cubeRef_(""),
 cubeMoving_(""),
+        vdw_grid_spacing_(0.4),
 verbosity_(1) {
 
     std::string outfile;
@@ -26,6 +27,7 @@ verbosity_(1) {
 
         if (getoption(option, "-R", cubeRef_, i, argc, argv)) continue;
         if (getoption(option, "-M", cubeMoving_, i, argc, argv)) continue;
+        if (getoption(option, "-g", vdw_grid_spacing_, i, argc, argv)) continue;
         if (getoption(option, "-v", verbosity_, i, argc, argv)) continue;
 
         // when reaching this points, unknown option character

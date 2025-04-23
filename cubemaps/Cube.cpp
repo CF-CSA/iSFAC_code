@@ -374,7 +374,7 @@ double Cube::CC(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) co
  * @param cube
  * @return 
  */
-double Cube::CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) const {
+double Cube::CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo, const double& vdw_grid_spacing) const {
     const Mat33 U = KabschTrafo.first;
     const Vec3 T = KabschTrafo.second;
     std::vector<double> g1, g2;
@@ -384,7 +384,7 @@ double Cube::CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo
     for (auto x: cbatoms_) {
         atoms1.push_back(x.atom());
     }
-    std::vector<Vec3> vdw1 = Utils::surfacegrid(atoms1, 1.1, verbosity_);
+    std::vector<Vec3> vdw1 = Utils::surfacegrid(atoms1, vdw_grid_spacing, verbosity_);
     for (auto x: vdw1) {
         Vec3 pos (x.x(), x.y(), x.z());
         try {
@@ -400,7 +400,8 @@ double Cube::CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo
 
     const double cc = Utils::CC<double>(g1, g2);
     if (verbosity_ > 1) {
-        std::cout << "---> CC from VdW surface of reference molecule, gridpoints: " << g1.size() << '\n'
+        std::cout << "---> CC from VdW surface of reference molecule, gridpoints: " << g1.size() 
+                << ", grid_spacing: " << vdw_grid_spacing << "A\n"
                 << "    Pearson CC for maps: " << cc << std::endl;
     }
     const double cc_gsl = Utils::CC_gsl(g1, g2);

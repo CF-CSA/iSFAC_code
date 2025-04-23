@@ -94,7 +94,7 @@ public:
     double CC(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) const;
     
     //! compute Pearson coefficient with second cube on VdW surface
-    double CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) const;
+    double CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo, const double& vdw_grid_spacing) const;
     
     //! print some information about map
     void info() const;

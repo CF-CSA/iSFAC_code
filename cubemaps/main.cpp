@@ -29,11 +29,6 @@ int main(int argc, char** argv) {
         Cube reference = Cube(parser.cubeRef(), parser.verbosity());
         Cube moving = Cube(parser.cubeMoving(), parser.verbosity());
 
-        if (parser.verbosity() > 2) {
-            std::cout << "---> Information about maps before consistence checks:\n";
-            reference.info();
-            moving.info();
-        }
         //! do some sanity checks before preparing for CC
         consistency_checks(reference, moving, parser.verbosity());
         if (parser.verbosity() > 2) {
@@ -45,8 +40,8 @@ int main(int argc, char** argv) {
         std::pair<Mat33, Vec3> kabschTrafo = moving.makeKabsch(reference);
         moving.transform_coords(kabschTrafo, reference.centroid());
         
-        double cc = reference.CC(moving, kabschTrafo);
-        double cc_vdw = reference.CC_VdW(moving, kabschTrafo);
+        // double cc = reference.CC(moving, kabschTrafo);
+        double cc_vdw = reference.CC_VdW(moving, kabschTrafo, parser.vdw_grid_spacing());
 
     } catch (myExcepts::Usage& e) {
         usage();

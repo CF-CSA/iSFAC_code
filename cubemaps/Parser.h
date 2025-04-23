@@ -18,6 +18,7 @@
 class Parser {
 private:
     std::string cubeRef_, cubeMoving_;
+    double vdw_grid_spacing_;
     unsigned char verbosity_;
   
     template <typename T> bool getoption(const std::string& option,
@@ -33,6 +34,8 @@ public:
     
     std::string cubeRef() const { return cubeRef_; }
     std::string cubeMoving() const { return cubeMoving_; }
+    
+    double vdw_grid_spacing() const { return vdw_grid_spacing_; }
     
     
     unsigned char verbosity() const { return verbosity_; }
