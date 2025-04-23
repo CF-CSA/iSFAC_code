@@ -400,13 +400,12 @@ double Cube::CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo
 
     const double cc = Utils::CC<double>(g1, g2);
     if (verbosity_ > 1) {
-        std::cout << "---> Number of overlapping gridpoints: " << g1.size() << '\n'
+        std::cout << "---> CC from VdW surface of reference molecule, gridpoints: " << g1.size() << '\n'
                 << "    Pearson CC for maps: " << cc << std::endl;
     }
     const double cc_gsl = Utils::CC_gsl(g1, g2);
     if (verbosity_ > 1) {
-        std::cout << "---> Number of overlapping gridpoints: " << g1.size() << '\n'
-                << "    Pearson CC for maps from GSL CC: " << cc_gsl << std::endl;
+        std::cout  << "    Pearson CC for maps from GSL CC: " << cc_gsl << std::endl;
     }
     return cc;
 }
