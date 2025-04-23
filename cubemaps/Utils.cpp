@@ -66,7 +66,6 @@ std::vector<Vec3> Utils::surfacegrid (const std::vector<Atom>& atoms, double gri
     }
     
     return surface;
-    
 }
 
 

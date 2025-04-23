@@ -45,7 +45,8 @@ int main(int argc, char** argv) {
         std::pair<Mat33, Vec3> kabschTrafo = moving.makeKabsch(reference);
         moving.transform_coords(kabschTrafo, reference.centroid());
         
-        double cc = moving.CC(reference, kabschTrafo);
+        double cc = reference.CC(moving, kabschTrafo);
+        double cc_vdw = reference.CC_VdW(moving, kabschTrafo);
 
     } catch (myExcepts::Usage& e) {
         usage();

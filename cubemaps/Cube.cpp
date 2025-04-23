@@ -216,7 +216,7 @@ double Cube::mapValue(const Vec3& pos) const {
 
     const double val = mapValue(ix, iy, iz);
     if (verbosity_ > 2) {
-        std::cout << "---> Reading map value at position " << pos
+        std::cout << "-----> Reading map value at position " << pos
                 << ", converted to indices "
                 << std::setw(4) << ix
                 << std::setw(4) << iy
@@ -316,8 +316,8 @@ double Cube::CC(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) co
             for (int iz = 0; iz < Vz_; ++iz) {
                 // compute coordinate of current grid point
                 Vec3 pos = origin_ + ix * ex_ + iy * ey_ + iz* ez_;
-                if (verbosity_ > 1) {
-                    std::cout << "---> Indices "
+                if (verbosity_ > 2) {
+                    std::cout << "-----> Indices "
                             << std::setw(3) << ix
                             << std::setw(3) << iy
                             << std::setw(3) << iz
@@ -334,7 +334,7 @@ double Cube::CC(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) co
                     double val = other.mapValue(pos);
                     g2.push_back(val);
                     if (verbosity_ > 1) {
-                        std::cout << "---> value from moving map at "
+                        std::cout << "----> value from moving map at "
                                 << pos << " = " << val << '\n';
                     }
                     val = mapValue(ix, iy, iz);
@@ -346,6 +346,9 @@ double Cube::CC(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) co
                     g1.push_back(val);
                 }// non-overlapping position
                 catch (std::logic_error& e) {
+                    if (verbosity_ > 2) {
+                        std::cout << "----> no matching grid point\n";
+                    }
                     continue;
                 }
             }
@@ -363,6 +366,51 @@ double Cube::CC(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) co
     }
     return cc;
 }
+
+/**
+ * Compute Pearson Correlation coefficient with another cube. Grid values
+ * take from this cube and interpolated for the second cube
+ * KabschTrafo must be computed for this map
+ * @param cube
+ * @return 
+ */
+double Cube::CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) const {
+    const Mat33 U = KabschTrafo.first;
+    const Vec3 T = KabschTrafo.second;
+    std::vector<double> g1, g2;
+    
+    // generate VdW surface for cube
+    std::vector<Atom> atoms1;
+    for (auto x: cbatoms_) {
+        atoms1.push_back(x.atom());
+    }
+    std::vector<Vec3> vdw1 = Utils::surfacegrid(atoms1, 1.1, verbosity_);
+    for (auto x: vdw1) {
+        Vec3 pos (x.x(), x.y(), x.z());
+        try {
+        double v1 = mapValue(pos);
+        double v2 = other.mapValue(pos);
+        g1.push_back(v1);
+        g2.push_back(v2);
+        }
+        catch(std::logic_error& e) {
+            continue;
+        }
+    }
+
+    const double cc = Utils::CC<double>(g1, g2);
+    if (verbosity_ > 1) {
+        std::cout << "---> Number of overlapping gridpoints: " << g1.size() << '\n'
+                << "    Pearson CC for maps: " << cc << std::endl;
+    }
+    const double cc_gsl = Utils::CC_gsl(g1, g2);
+    if (verbosity_ > 1) {
+        std::cout << "---> Number of overlapping gridpoints: " << g1.size() << '\n'
+                << "    Pearson CC for maps from GSL CC: " << cc_gsl << std::endl;
+    }
+    return cc;
+}
+
 
 /**
  Procedure to determine CC between two grid Cfix, Cmove:
