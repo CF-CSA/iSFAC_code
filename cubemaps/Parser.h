@@ -19,7 +19,7 @@ class Parser {
 private:
     std::string cubeRef_, cubeMoving_;
     double vdw_grid_spacing_;
-    unsigned char verbosity_;
+    unsigned short verbosity_;
   
     template <typename T> bool getoption(const std::string& option,
             const std::string& opt, T& optval, int& idx, int argc,

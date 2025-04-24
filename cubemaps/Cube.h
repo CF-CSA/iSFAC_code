@@ -50,7 +50,7 @@ private:
 
     void readMap(const std::string& fname);
     //! compute geometric centroid ('CoM') for N coordinates
-    Vec3 centroid(int N);
+    Vec3 calc_centroid(int N);
 
 public:
     Cube() = default;

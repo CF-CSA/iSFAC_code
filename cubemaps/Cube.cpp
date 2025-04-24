@@ -27,7 +27,15 @@ Cube::Cube(const std::string& filename, short verbosity) :
 verbosity_(verbosity) {
     readMap(filename);
     // when successful, compute centroid
-    centroid();
+    calc_centroid(-1);
+    if (verbosity_ > 0) {
+        std::cout << "---> Info reading Cube file from " << filename << "\n"
+                << "     Number of atoms: " << numAtoms_
+                << " with centroid " << centroid_ << '\n'
+                << "     Number of grid points: " << gridvalues_.size() << " = "
+                << Vx_ << '*' << Vy_ << '*' << Vz_ << " (x y z)\n";
+    }
+
 }
 
 /**
@@ -50,11 +58,11 @@ void Cube::readMap(const std::string& fname) {
         double x, y, z;
         double orgx, orgy, orgz;
         inp >> numAtoms_ >> orgx >> orgy >> orgz;
-        
+
         inp >> Vx_ >> x >> y >> z;
         if (Vx_ < 0) {
             ex_ = Vec3(x, y, z);
-            
+
         } else {
             ex_ = Vec3(a0toA*x, a0toA*y, a0toA * z);
             orgx *= a0toA;
@@ -78,10 +86,6 @@ void Cube::readMap(const std::string& fname) {
         origin_ = Vec3(orgx, orgy, orgz);
 
 
-        if (Vx_ < 0 && Vy_ < 0 && Vz_ < 0) {
-            a0toA = 1.0;
-        }
-
         for (int i = 0; i < numAtoms_; ++i) {
             int Z;
             double q;
@@ -94,7 +98,7 @@ void Cube::readMap(const std::string& fname) {
                 std::cout << "---> Failure reading atom.\n";
                 throw myExcepts::Format("Premature end of Atom list in Cube file");
             } else if (verbosity_ > 2) {
-                std::cout << "---> Read atom " << Z << ' ' << q << ' '
+                std::cout << Utils::prompt(2) << "Read atom " << Z << ' ' << q << ' '
                         << x << ' ' << y << ' ' << z << '\n';
             }
             cbatoms_.push_back(cbAtom(Z, q, x, y, z));
@@ -109,24 +113,20 @@ void Cube::readMap(const std::string& fname) {
         while ((!inp.eof()) && (!inp.fail())) {
             double g;
             inp >> g;
-            if (inp.fail() || inp.eof()) {
+            if (inp.fail()) {
                 break;
             }
-            if (verbosity_ > 3)
-                //std::cout << g << '\n';
-                gridvalues_.push_back(g);
+            gridvalues_.push_back(g);
         }
     } catch (std::ifstream::failure e) {
         std::cout << "*** Error reading Cube file. Check format\n";
         throw myExcepts::FileIO("Format Cube file");
     }
     inp.close();
-    if (verbosity_ > 1) {
-        std::cout << "---> Info reading Cube file from " << fname << "\n"
-                << "    Number of atoms: " << numAtoms_ << '\n'
-                << "    Number of grid points: " << gridvalues_.size() << '\n'
-                << "    along x y z: " << Vx_ << ' ' << Vy_ << ' ' << Vz_
-                << " = " << Vx_ * Vy_ * Vz_ << '\n';
+    if ((Vx_ * Vy_ * Vz_) != gridvalues_.size()) {
+        std::cout << "*** Error: inconsistent format. Vx_ * Vy_ * Vz_ = " << Vx_ * Vy_ * Vz_
+                << " but " << gridvalues_.size() << " grid points read. Exiting.\n";
+        throw myExcepts::FileIO("Format Cube file");
     }
     // define ``reciprocal vectors'' for coordinate retrieval
     ux_ = cross(ey_, ez_);
@@ -216,7 +216,7 @@ double Cube::mapValue(const Vec3& pos) const {
 
     const double val = mapValue(ix, iy, iz);
     if (verbosity_ > 2) {
-        std::cout << "-----> Reading map value at position " << pos
+        std::cout << Utils::prompt(2) << "Reading map value at position " << pos
                 << ", converted to indices "
                 << std::setw(4) << ix
                 << std::setw(4) << iy
@@ -378,39 +378,46 @@ double Cube::CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo
     const Mat33 U = KabschTrafo.first;
     const Vec3 T = KabschTrafo.second;
     std::vector<double> g1, g2;
-    
+    g1.reserve(gridvalues_.size());
+    g2.reserve(gridvalues_.size());
+
     // generate VdW surface for cube
     std::vector<Atom> atoms1;
-    for (auto x: cbatoms_) {
+    for (auto x : cbatoms_) {
         atoms1.push_back(x.atom());
     }
-    std::vector<Vec3> vdw1 = Utils::surfacegrid(atoms1, vdw_grid_spacing, verbosity_);
-    for (auto x: vdw1) {
-        Vec3 pos (x.x(), x.y(), x.z());
+    std::vector<Vec3> vdw1 = Utils::vdw_vol_grid(atoms1, vdw_grid_spacing, verbosity_);
+    for (auto x : vdw1) {
+        Vec3 pos(x.x(), x.y(), x.z());
         try {
-        double v1 = mapValue(pos);
-        double v2 = other.mapValue(pos);
-        g1.push_back(v1);
-        g2.push_back(v2);
-        }
-        catch(std::logic_error& e) {
+            double v1 = mapValue(pos);
+            double v2 = other.mapValue(pos);
+            g1.push_back(v1);
+            g2.push_back(v2);
+        } catch (std::logic_error& e) {
             continue;
         }
     }
 
     const double cc = Utils::CC<double>(g1, g2);
     if (verbosity_ > 1) {
-        std::cout << "---> CC from VdW surface of reference molecule, gridpoints: " << g1.size() 
+        std::cout << "---> CC from VdW surface of reference molecule, gridpoints: " << g1.size()
                 << ", grid_spacing: " << vdw_grid_spacing << "A\n"
                 << "    Pearson CC for maps: " << cc << std::endl;
     }
     const double cc_gsl = Utils::CC_gsl(g1, g2);
     if (verbosity_ > 1) {
-        std::cout  << "    Pearson CC for maps from GSL CC: " << cc_gsl << std::endl;
+        std::cout << "    Pearson CC for maps from GSL CC: " << cc_gsl << std::endl;
+    }
+    
+    if (verbosity_ > 2) {
+        std::cout << Utils::prompt(3) << "pairwise values from which CC was computed:\n";
+        for (size_t idx=0; idx < g1.size(); ++idx) {
+            std::cout << g1[idx] << ' ' << g2[idx] << '\n';
+        }
     }
     return cc;
 }
-
 
 /**
  Procedure to determine CC between two grid Cfix, Cmove:
@@ -442,7 +449,7 @@ std::vector<Vec3> Cube::coords() const {
  * @param N
  * @return 
  */
-Vec3 Cube::centroid(int N) {
+Vec3 Cube::calc_centroid(int N) {
     std::vector<Vec3> coords;
     if (N < 0) {
         for (auto x : cbatoms_) {
@@ -457,7 +464,7 @@ Vec3 Cube::centroid(int N) {
     }
     centroid_ = 1. / coords.size() * std::accumulate(coords.begin(), coords.end(), Vec3(0, 0, 0));
     if (verbosity_ > 1) {
-        std::cout << "---> Cntroid: " << centroid_ <<'\n';
+        std::cout << Utils::prompt(2) <<  "Centroid: " << centroid_ << '\n';
     }
     return centroid_;
 }
@@ -551,22 +558,24 @@ bool consistency_checks(Cube& one, Cube& two, unsigned char verbosity) {
     int N = std::min(one.numAtoms(), two.numAtoms());
 
     if (verbosity > 1) {
-        std::cout << "---> Consistency check: limiting number of atoms in both maps to " << N << '\n';
+        std::cout << Utils::prompt(2) << "Consistency check: limiting number of atoms in both maps to " << N << '\n';
     }
     one.cbatoms_.resize(N);
     two.cbatoms_.resize(N);
 
-    one.centroid(-1);
-    two.centroid(-1);
+    one.calc_centroid(-1);
+    two.calc_centroid(-1);
 
-    one.info();
-    two.info();
+    if (verbosity > 2) {
+        one.info();
+        two.info();
+    }
     if (verbosity > 1) {
-        std::cout << "---> Producing distance matrix for first map with " << one.coords().size() << " coordinates.\n";
+        std::cout << Utils::prompt(2) << "Producing distance matrix for first map with " << one.coords().size() << " coordinates.\n";
     }
     const std::vector<double> d2one(Utils::distance_matrix(one.coords()));
     if (verbosity > 1) {
-        std::cout << "---> Producing distance matrix for second map with " << two.coords().size() << " coordinates.\n";
+        std::cout << Utils::prompt(2) << "Producing distance matrix for second map with " << two.coords().size() << " coordinates.\n";
     }
     const std::vector<double> d2two(Utils::distance_matrix(two.coords()));
     // compute sum pairwise distances
@@ -587,17 +596,20 @@ bool consistency_checks(Cube& one, Cube& two, unsigned char verbosity) {
 
 void Cube::info() const {
     std::vector<double> dists = Utils::distance_matrix(coords());
-    std::cout << "---> Information about Cube map\n"
-            << "   Number of atoms: " << cbatoms_.size() << '\n';
-    for (int idx = 0; idx < dists.size();) {
-        const int tabs = idx / (cbatoms_.size() - 1) + 1;
-        for (int i = 0; i < tabs; ++i) {
-            std::cout << std::setw(7) << ' ';
+    std::cout << Utils::prompt(1) << "Information about Cube map\n"
+            << "   Number of atoms: " << cbatoms_.size() << '\n'
+            << "   Number of grid points: " << gridvalues_.size() << '\n';
+    if (verbosity_ > 1) {
+        for (int idx = 0; idx < dists.size();) {
+            const int tabs = idx / (cbatoms_.size() - 1) + 1;
+            for (int i = 0; i < tabs; ++i) {
+                std::cout << std::setw(7) << ' ';
+            }
+            for (int i = tabs; i < cbatoms_.size(); ++i) {
+                std::cout << std::fixed << std::setw(7) << std::setprecision(2) << dists[idx];
+                ++idx;
+            }
+            std::cout << '\n';
         }
-        for (int i = tabs; i < cbatoms_.size(); ++i) {
-            std::cout << std::fixed << std::setw(7) << std::setprecision(2) << dists[idx];
-            ++idx;
-        }
-        std::cout << '\n';
     }
 }

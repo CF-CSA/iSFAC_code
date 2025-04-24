@@ -14,14 +14,14 @@
 /**
  * algorithm to create a surface grid at vdW radii of atoms, with a grid spacing 
  * og @c gridspacing (in Angstrom)
- * - creeate a bounding box at @c gridspacing
+ * - create a bounding box at @c gridspacing
  * - for each grid point check distance to atoms, mark when whithin vdW radius of any
  * algortihm from ChatGPT
  * @param atoms
  * @param gridspacing
  * @return 
  */
-std::vector<Vec3> Utils::surfacegrid (const std::vector<Atom>& atoms, double gridspacing, int verbosity) {
+std::vector<Vec3> Utils::vdw_vol_grid (const std::vector<Atom>& atoms, double gridspacing, int verbosity) {
     
     Vec3 bbox_min, bbox_max;
     std::vector<Vec3> grid, surface;
@@ -60,9 +60,9 @@ std::vector<Vec3> Utils::surfacegrid (const std::vector<Atom>& atoms, double gri
             }
         }
     }
-    if (verbosity > 1) {
-        std::cout << "---> Generated bounding box with " << grid.size() << " and surface with " 
-                << surface.size() << " grid points\n";
+    if (verbosity > 0) {
+        std::cout << "---> Generated bounding box with " << grid.size() << " points and VdW volume with " 
+                << surface.size() << " points\n";
     }
     
     return surface;
@@ -245,4 +245,19 @@ double Utils::CC_gsl(const std::vector<double>& d1, const std::vector<double>& d
     gsl_vector_free(g1);
     gsl_vector_free(g2);
     return cc;
+}
+
+/**
+ * return the prompt arrow ---> which 2+ verbosity number of dashes
+ * @param verbosity
+ * @return 
+ */
+std::string Utils::prompt(const unsigned short& verbosity) {
+    std::string p ("--");
+    for (int i = 0; i < verbosity; ++i) {
+        p += '-';
+    }
+    p+= "> ";
+    return p;
+    
 }

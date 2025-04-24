@@ -14,6 +14,7 @@
 #include "Cube.h"
 #include "Parser.h"
 #include "Usage.h"
+#include "Utils.h"
 #include "myExceptions.h"
 
 /*
@@ -31,17 +32,24 @@ int main(int argc, char** argv) {
 
         //! do some sanity checks before preparing for CC
         consistency_checks(reference, moving, parser.verbosity());
-        if (parser.verbosity() > 2) {
-            std::cout << "---> Information about maps after consistence checks:\n";
+        if (parser.verbosity() > 3) {
+            std::cout << Utils::prompt(2) << "Information about maps after consistence checks:\n";
             reference.info();
             moving.info();
         }
 
         std::pair<Mat33, Vec3> kabschTrafo = moving.makeKabsch(reference);
-        moving.transform_coords(kabschTrafo, reference.centroid());
+        if (parser.verbosity() > 2) {
+            // print transformed coords, for debugging, not required
+            moving.transform_coords(kabschTrafo, reference.centroid());
+        }
         
+
         // double cc = reference.CC(moving, kabschTrafo);
         double cc_vdw = reference.CC_VdW(moving, kabschTrafo, parser.vdw_grid_spacing());
+        if (parser.verbosity() > 0) {
+            std::cout << "---> Pearson correlation coefficient: " << cc_vdw << '\n';
+        }
 
     } catch (myExcepts::Usage& e) {
         usage();

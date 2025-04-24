@@ -24,7 +24,7 @@
 
 
 namespace Utils {
-std::vector<Vec3> surfacegrid (const std::vector<Atom>& atoms, double gridspacing, int verbosity);
+std::vector<Vec3> vdw_vol_grid (const std::vector<Atom>& atoms, double gridspacing, int verbosity);
 
 //! translate set of coordinates to their centroid
 std::vector<Vec3> centroid (const std::vector<Vec3>& coords);
@@ -42,6 +42,8 @@ template <typename T> T CC(const std::vector<T>&, const std::vector<T>&);
 
 //! compute Pearson CC with GSL
 double CC_gsl(const std::vector<double>&, const std::vector<double>&);
+
+std::string prompt(const unsigned short& verbosity);
 
 }
 /**

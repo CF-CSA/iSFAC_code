@@ -104,16 +104,6 @@ int kabsch(
     }
     gsl_vector_scale(cy, n);
     
-    std::cout << "--->Kabsch, centroid X = " 
-            << gsl_vector_get(cx, 0) << ' ' 
-            << gsl_vector_get(cx, 1) << ' ' 
-            << gsl_vector_get(cx, 2) << '\n';
-
-        std::cout << "--->Kabsch, centroid Y = " 
-            << gsl_vector_get(cy, 0) << ' ' 
-            << gsl_vector_get(cy, 1) << ' ' 
-            << gsl_vector_get(cy, 2) << '\n';
-
     /* move X to origin */
     for (i = size; i > 0;) {
         gsl_vector_view row = gsl_matrix_row(X, --i);
