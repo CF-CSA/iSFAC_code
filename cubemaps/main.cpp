@@ -11,6 +11,8 @@
  * Created on October 8, 2024, 3:35 PM
  */
 
+#include <iomanip>
+
 #include "Cube.h"
 #include "Parser.h"
 #include "Usage.h"
@@ -48,7 +50,8 @@ int main(int argc, char** argv) {
         // double cc = reference.CC(moving, kabschTrafo);
         double cc_vdw = reference.CC_VdW(moving, kabschTrafo, parser.vdw_grid_spacing());
         if (parser.verbosity() > 0) {
-            std::cout << "---> Pearson correlation coefficient: " << cc_vdw << '\n';
+            std::cout << "---> Pearson correlation coefficient: " 
+                    << std::setw(6) << std::setprecision(3) << cc_vdw << '\n';
         }
 
     } catch (myExcepts::Usage& e) {

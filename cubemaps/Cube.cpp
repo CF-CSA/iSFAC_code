@@ -519,12 +519,14 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other) const {
     Vec3 kabschT(gsl_vector_get(t, 0), gsl_vector_get(t, 1), gsl_vector_get(t, 2));
 
 
+    if (verbosity_ > 2) {
     std::cout << "---> Det(U) = " << Utils::determinant(U) << std::endl;
     std::cout << "---> KR = \n" << kabschR << std::endl;
     std::cout << "---> Translation: " << gsl_vector_get(t, 0) << ' '
             << gsl_vector_get(t, 1) << ' '
             << gsl_vector_get(t, 2) << ' '
             << std::endl;
+    }
 
     std::pair<Mat33, Vec3> K(kabschR, kabschT);
 
@@ -537,6 +539,11 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other) const {
     return K;
 }
 
+/**
+ * this is not used other than for debugging the transformed coordinates
+ * @param kabschTrafo
+ * @param ctr_target
+ */
 void Cube::transform_coords(const std::pair<Mat33, Vec3>& kabschTrafo, const Vec3& ctr_target) {
     const Mat33 M = kabschTrafo.first;
     const Vec3 T = kabschTrafo.second;
