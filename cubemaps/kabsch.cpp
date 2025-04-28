@@ -34,8 +34,6 @@
 
 #include "kabsch.h"
 
-#include<iostream>
-
 #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_blas.h>
 
