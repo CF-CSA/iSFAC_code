@@ -387,6 +387,9 @@ double Cube::CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo
         atoms1.push_back(x.atom());
     }
     std::vector<Vec3> vdw1 = Utils::vdw_vol_grid(atoms1, vdw_grid_spacing, verbosity_);
+    if (verbosity_ > 2) {
+        std::cout << Utils::prompt(2) << " Printing positions and valus on VdW volumne\n";
+    }
     for (auto x : vdw1) {
         Vec3 pos(x.x(), x.y(), x.z());
         try {
@@ -394,6 +397,10 @@ double Cube::CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo
             double v2 = other.mapValue(pos);
             g1.push_back(v1);
             g2.push_back(v2);
+            if (verbosity_ > 2) {
+                std::cout << pos << " " << v1 << " " << v2 << '\n';
+                
+            }
         } catch (std::logic_error& e) {
             continue;
         }
@@ -401,7 +408,7 @@ double Cube::CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo
 
     const double cc = Utils::CC<double>(g1, g2);
     if (verbosity_ > 1) {
-        std::cout << "---> CC from VdW surface of reference molecule, gridpoints: " << g1.size()
+        std::cout << Utils::prompt(1) << "CC from VdW surface of reference molecule, gridpoints: " << g1.size()
                 << ", grid_spacing: " << vdw_grid_spacing << "A\n"
                 << "    Pearson CC for maps: " << cc << std::endl;
     }

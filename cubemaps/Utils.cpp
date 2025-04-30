@@ -11,8 +11,9 @@
 #include <numeric>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_statistics_double.h>
+
 /**
- * algorithm to create a surface grid at vdW radii of atoms, with a grid spacing 
+ * algorithm to create a volume grid at vdW radii of atoms, with a grid spacing 
  * og @c gridspacing (in Angstrom)
  * - create a bounding box at @c gridspacing
  * - for each grid point check distance to atoms, mark when whithin vdW radius of any
@@ -21,39 +22,45 @@
  * @param gridspacing
  * @return 
  */
-std::vector<Vec3> Utils::vdw_vol_grid (const std::vector<Atom>& atoms, double gridspacing, int verbosity) {
-    
+std::vector<Vec3> Utils::vdw_vol_grid(const std::vector<Atom>& atoms, double gridspacing, int verbosity) {
+
     Vec3 bbox_min, bbox_max;
-    std::vector<Vec3> grid, surface;
+    std::vector<Vec3> grid, vdw_volume;
     double minx(9999), miny(9999), minz(9999), maxx(-9999), maxy(-9999), maxz(-9999);
 
     // find min and max of coordinates
     for (auto atom : atoms) {
-        if ((atom.xyz()).x()-atom.vdw_radius() < minx) minx = (atom.xyz()).x()-atom.vdw_radius() ;
-        if ((atom.xyz()).x()+atom.vdw_radius() > maxx) maxx = (atom.xyz()).x()+atom.vdw_radius() ;
+        minx = std::min(minx, (atom.xyz()).x() - atom.vdw_radius());
+        maxx = std::max(maxx, (atom.xyz()).x() + atom.vdw_radius());
 
-        if ((atom.xyz()).y()-atom.vdw_radius() < miny) miny = (atom.xyz()).y()-atom.vdw_radius();
-        if ((atom.xyz()).y()+atom.vdw_radius() > maxy) maxy = (atom.xyz()).y()+atom.vdw_radius();
-        
-        if ((atom.xyz()).z()-atom.vdw_radius() < minz) minz = (atom.xyz()).z()-atom.vdw_radius();
-        if ((atom.xyz()).z()+atom.vdw_radius() > maxz) maxz = (atom.xyz()).z()+atom.vdw_radius();
+        miny = std::min(miny, (atom.xyz()).y() - atom.vdw_radius());
+        maxy = std::max(maxy, (atom.xyz()).y() + atom.vdw_radius());
+
+        minz = std::min(minz, (atom.xyz()).z() - atom.vdw_radius());
+        maxz = std::max(maxz, (atom.xyz()).z() + atom.vdw_radius());
     }
     bbox_min = Vec3(minx, miny, minz);
     bbox_max = Vec3(maxx, maxy, maxz);
-    
-    int stepsx = (maxx-minx)/gridspacing;
-    int stepsy = (maxy-miny)/gridspacing;
-    int stepsz = (maxz-minz)/gridspacing;
-    
+
+    int stepsx = (maxx - minx) / gridspacing;
+    int stepsy = (maxy - miny) / gridspacing;
+    int stepsz = (maxz - minz) / gridspacing;
+
     //! create list of grid points
-    for (int ix = 0; ix < stepsx; ++ix){
+    if (verbosity > 2) {
+        std::cout << Utils::prompt(2) << "Grid points for VdW surface:\n";
+    }
+    for (int ix = 0; ix < stepsx; ++ix) {
         for (int iy = 0; iy < stepsy; ++iy) {
             for (int iz = 0; iz < stepsz; ++iz) {
-                Vec3 xyz (minx + ix*gridspacing, miny + iy*gridspacing, minz + iz*gridspacing);
+                Vec3 xyz(minx + ix*gridspacing, miny + iy*gridspacing, minz + iz * gridspacing);
                 grid.push_back(xyz);
                 for (auto atom : atoms) {
                     if (atom.insphere(xyz)) {
-                        surface.push_back(xyz);
+                        vdw_volume.push_back(xyz);
+                        if (verbosity > 2) {
+                            std::cout << xyz << '\n';
+                        }
                         break;
                     }
                 }
@@ -61,13 +68,12 @@ std::vector<Vec3> Utils::vdw_vol_grid (const std::vector<Atom>& atoms, double gr
         }
     }
     if (verbosity > 0) {
-        std::cout << "---> Generated bounding box with " << grid.size() << " points and VdW volume with " 
-                << surface.size() << " points\n";
+        std::cout << Utils::prompt(0) << "Generated bounding box with " << grid.size() << " points and VdW volume with "
+                << vdw_volume.size() << " points\n";
     }
-    
-    return surface;
-}
 
+    return vdw_volume;
+}
 
 /**
  * compute the vector that moves the centroid of @c moved to the centroid of @c fixed
@@ -75,15 +81,16 @@ std::vector<Vec3> Utils::vdw_vol_grid (const std::vector<Atom>& atoms, double gr
  * @param moved moving set of coordinates
  * @return translation vector
  */
-std::vector<Vec3> Utils::centroid (const std::vector<Vec3>& coords) {
-    Vec3 ctr = 1./coords.size()*std::accumulate(coords.begin(), coords.end(), Vec3(0,0,0));
-    std::vector<Vec3> centred (coords);
-    for (auto &x: centred) {
-        x = x-ctr;
+std::vector<Vec3> Utils::centroid(const std::vector<Vec3>& coords) {
+    Vec3 ctr = 1. / coords.size() * std::accumulate(coords.begin(), coords.end(), Vec3(0, 0, 0));
+    std::vector<Vec3> centred(coords);
+    for (auto &x : centred) {
+        x = x - ctr;
     }
-    
+
     return coords;
 }
+
 /**
  * Compute the upper triangle of squared distances between a set of coordinates
  * main diagonal is omitted
@@ -92,17 +99,18 @@ std::vector<Vec3> Utils::centroid (const std::vector<Vec3>& coords) {
  */
 std::vector<double> Utils::distance_matrix(const std::vector<Vec3>& coords) {
     std::vector<double> distances;
-    const int N = (coords.size()*(coords.size()-1)) /2;
+    const int N = (coords.size()*(coords.size() - 1)) / 2;
     distances.reserve(N);
-    
-    for (std::vector<Vec3>::const_iterator itr = coords.begin(); itr != coords.end()-1; ++itr) {
-        for (std::vector<Vec3>::const_iterator itc = itr+1; itc != coords.end(); ++itc) {
+
+    for (std::vector<Vec3>::const_iterator itr = coords.begin(); itr != coords.end() - 1; ++itr) {
+        for (std::vector<Vec3>::const_iterator itc = itr + 1; itc != coords.end(); ++itc) {
             double dsqd = ((*itr) - (*itc)).lengthsq();
             distances.push_back(std::sqrt(dsqd));
         }
     }
     return distances;
 }
+
 /**
  * Compute rotation matrix that rotates moved onto fixed
  * follows  Kabsch algortithm with SVD as explained at 
@@ -116,7 +124,7 @@ Mat33 Utils::KabschR(const std::vector<Vec3>& fixed, const std::vector<Vec3> mov
     // prepare for H = fixed^T * moved
     gsl_matrix* H;
     int N = fixed.size();
-    H = gsl_matrix_alloc(N,N);
+    H = gsl_matrix_alloc(N, N);
     for (int r = 0; r < N; ++r) {
         for (int c = 0; c < N; ++c) {
             double v(0.0);
@@ -126,33 +134,33 @@ Mat33 Utils::KabschR(const std::vector<Vec3>& fixed, const std::vector<Vec3> mov
             // now compute SVD of H
         }
     }
-    gsl_matrix* V = gsl_matrix_alloc(N,N);
+    gsl_matrix* V = gsl_matrix_alloc(N, N);
     gsl_vector* S = gsl_vector_alloc(N);
     gsl_vector* work = gsl_vector_alloc(N);
-    
+
     std::cout << "---> Before SVD for H, dimensions " << H->size1 << ' ' << H->size2 << '\n';
     for (int r = 0; r < H->size1; ++r) {
         std::cout << "   ";
         for (int c = 0; c < H->size2; ++c) {
             std::cout << gsl_matrix_get(H, r, c) << ' ';
-                    
+
         }
         std::cout << '\n';
     }
 
 
     int result = gsl_linalg_SV_decomp(H, V, S, work);
-    
+
     std::cout << "---> After SVD for H, dimensions " << H->size1 << ' ' << H->size2 << '\n';
     for (int r = 0; r < H->size1; ++r) {
         std::cout << "   ";
         for (int c = 0; c < H->size2; ++c) {
             std::cout << gsl_matrix_get(H, r, c) << ' ';
-                    
+
         }
         std::cout << '\n';
     }
-    
+
     double det = Utils::determinant(H) * Utils::determinant(V);
     std::cout << "---> Determinant of U*VT = " << det << '\n';
     if (det < 0.0) {
@@ -160,12 +168,12 @@ Mat33 Utils::KabschR(const std::vector<Vec3>& fixed, const std::vector<Vec3> mov
         // = last row of U^T
         int row = H->size1 - 1;
         for (int c = 0; c < H->size2; ++c) {
-            double h =  -1*gsl_matrix_get(H, row, c);
+            double h = -1 * gsl_matrix_get(H, row, c);
             gsl_matrix_set(H, row, c, h);
         }
     }
- 
-    
+
+
     /*
      SVD of H results in U Sigma V^T
      * R = V U^T where U is stored in H
@@ -173,25 +181,25 @@ Mat33 Utils::KabschR(const std::vector<Vec3>& fixed, const std::vector<Vec3> mov
      * R_ij = sum_k V_ik U^T _kj = sum_k V_ik*U_jk
      */
     Mat33 R;
-    gsl_matrix* rgsl= gsl_matrix_alloc(3,3);
+    gsl_matrix* rgsl = gsl_matrix_alloc(3, 3);
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; ++j) {
             double r(0.0);
-            for (int k = 0; k < 3; ++k){
-                r += gsl_matrix_get(V, i, k)*gsl_matrix_get(H, j, k);
+            for (int k = 0; k < 3; ++k) {
+                r += gsl_matrix_get(V, i, k) * gsl_matrix_get(H, j, k);
             }
-            R(i,j) = r;
+            R(i, j) = r;
             gsl_matrix_set(rgsl, i, j, r);
         }
     }
-    
+
     det = Utils::determinant(rgsl);
     std::cout << "---> Determinant of Rgsl = " << det << '\n';
-        for (int r = 0; r < rgsl->size1; ++r) {
+    for (int r = 0; r < rgsl->size1; ++r) {
         std::cout << "   ";
         for (int c = 0; c < rgsl->size2; ++c) {
             std::cout << gsl_matrix_get(rgsl, r, c) << ' ';
-                    
+
         }
         std::cout << '\n';
     }
@@ -201,10 +209,11 @@ Mat33 Utils::KabschR(const std::vector<Vec3>& fixed, const std::vector<Vec3> mov
     gsl_vector_free(S);
 
     det = R.determinant();
-    std::cout << "---> Determinant of R = \n" << R << '\n' << det << '\n';
+    std::cout << Utils::prompt(1) << "Determinant of R = \n" << R << '\n' << det << '\n';
 
     return R;
 }
+
 /**
  * Computes the determinant of M , assumed to be square
  * based on gsl LU decomposition
@@ -215,7 +224,7 @@ double Utils::determinant(const gsl_matrix* M) {
     int signum;
     gsl_permutation * p;
     double det = 1.0;
-    
+
     // make a copy of B to call LU_decomp
     gsl_matrix* B = gsl_matrix_alloc(M->size1, M->size2);
     gsl_matrix_memcpy(B, M);
@@ -234,14 +243,14 @@ double Utils::determinant(const gsl_matrix* M) {
 double Utils::CC_gsl(const std::vector<double>& d1, const std::vector<double>& d2) {
     gsl_vector* g1 = gsl_vector_alloc(d1.size());
     gsl_vector* g2 = gsl_vector_alloc(d1.size());
-    
+
     for (size_t i = 0; i < d1.size(); ++i) {
         gsl_vector_set(g1, i, d1[i]);
         gsl_vector_set(g2, i, d2[i]);
     }
-        
+
     const double cc = gsl_stats_correlation(&(d1[0]), 1, &(d2[0]), 1, d1.size());
-    
+
     gsl_vector_free(g1);
     gsl_vector_free(g2);
     return cc;
@@ -253,11 +262,11 @@ double Utils::CC_gsl(const std::vector<double>& d1, const std::vector<double>& d
  * @return 
  */
 std::string Utils::prompt(const unsigned short& verbosity) {
-    std::string p ("--");
+    std::string p("#--");
     for (int i = 0; i < verbosity; ++i) {
         p += '-';
     }
-    p+= "> ";
+    p += "> ";
     return p;
-    
+
 }

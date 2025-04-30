@@ -18,6 +18,10 @@ element_(el), xyz_(xyz), Z_(Z), weight_(weight), vdw_radius_(vdw_radius) {
     
 }
 
+
+/*
+ * return true if point xyz is within vdW sphere of this atom
+ */
 bool Atom::insphere(const Vec3 xyz) const {
     double d2 = (xyz_ - xyz).lengthsq();
     return (d2 < vdw_radius_*vdw_radius_);
