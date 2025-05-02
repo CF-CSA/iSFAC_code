@@ -71,6 +71,12 @@ std::vector<Vec3> Utils::vdw_vol_grid(const std::vector<Atom>& atoms, double gri
         std::cout << Utils::prompt(0) << "Generated bounding box with " << grid.size() << " points and VdW volume with "
                 << vdw_volume.size() << " points\n";
     }
+    if (verbosity > 3) {
+        std::cout << Utils::prompt(2) << "Coordinate points of the entire grid:\n";
+        for (auto x: grid) {
+            std::cout << x << '\n';
+        }
+    }
 
     return vdw_volume;
 }
