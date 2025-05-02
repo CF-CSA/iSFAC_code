@@ -22,8 +22,15 @@
 #include <cassert>
 #include <numeric>
 #include <iomanip>
+#include <limits>
 
 Cube::Cube(const std::string& filename, short verbosity) :
+minx_ (std::numeric_limits<double>::infinity()),
+miny_ (std::numeric_limits<double>::infinity()),
+minz_ (std::numeric_limits<double>::infinity()),
+maxx_ (-std::numeric_limits<double>::infinity()),
+maxy_ (-std::numeric_limits<double>::infinity()),
+maxz_ (-std::numeric_limits<double>::infinity()),
 verbosity_(verbosity) {
     readMap(filename);
     // when successful, compute centroid
@@ -94,6 +101,12 @@ void Cube::readMap(const std::string& fname) {
             if (Vx_ > 0) x *= a0toA;
             if (Vy_ > 0) y *= a0toA;
             if (Vz_ > 0) z *= a0toA;
+            minx_ = std::min(minx_, x);
+            miny_ = std::min(miny_, y);
+            minz_ = std::min(minz_, z);
+            maxx_ = std::max(maxx_, x);
+            maxy_ = std::max(maxy_, y);
+            maxz_ = std::max(maxz_, z);
             if (inp.fail()) {
                 std::cout << "---> Failure reading atom.\n";
                 throw myExcepts::Format("Premature end of Atom list in Cube file");
@@ -129,9 +142,13 @@ void Cube::readMap(const std::string& fname) {
         throw myExcepts::FileIO("Format Cube file");
     }
     // define ``reciprocal vectors'' for coordinate retrieval
+    // ensure ex_*ux_ = 1.
     ux_ = cross(ey_, ez_);
+    ux_ = 1./ (ex_*ux_) * ux_;
     uy_ = cross(ez_, ex_);
+    uy_ = 1./ (ey_*uy_) * uy_;
     uz_ = cross(ex_, ey_);
+    uz_ = 1./ (ez_*uz_) * uz_;
 }
 
 size_t Cube::gridIndex(int ix, int iy, int iz) const {
@@ -200,9 +217,9 @@ Would you like me to provide an example calculation or help implement this in co
 double Cube::mapValue(const Vec3& pos) const {
 
     //! get coordinages of pos and ensure its inside grid
-    double fx = (pos - origin_) * ux_ / (ex_ * ux_);
-    double fy = (pos - origin_) * uy_ / (ey_ * uy_);
-    double fz = (pos - origin_) * uz_ / (ez_ * uz_);
+    double fx = (pos - origin_) * ux_;
+    double fy = (pos - origin_) * uy_;
+    double fz = (pos - origin_) * uz_;
 
     // low left index
     int ix = std::round(fx);
@@ -612,8 +629,26 @@ void Cube::info() const {
     std::vector<double> dists = Utils::distance_matrix(coords());
     std::cout << Utils::prompt(1) << "Information about Cube map\n"
             << "   Number of atoms: " << cbatoms_.size() << '\n'
-            << "   Number of grid points: " << gridvalues_.size() << '\n';
-    if (verbosity_ > 1) {
+            << "   Number of grid points: " << gridvalues_.size() << '\n'
+            << "   Dimensions in A:\n"
+            << "   Origin: " << origin_ << " grid: " << Vx_ << ' ' << Vy_ << ' ' << Vz_ << '\n'
+            << "   ex: " << ex_ << '\n'
+            << "   ey: " << ey_ << '\n'
+            << "   ez: " << ez_ << '\n'
+            << "   ux: " << ux_ << '\n'
+            << "   uy: " << uy_ << '\n'
+            << "   uz: " << uz_ << '\n';
+
+    std::cout << Utils::prompt(1) << "Extend of grid:\n"
+            << "   X: " << origin_ << " -> " << origin_ + Vx_*ex_ << '\n'
+            << "   Y: " << origin_ << " -> " << origin_ + Vy_*ey_ << '\n'
+            << "   Z: " << origin_ << " -> " << origin_ + Vz_*ez_ << '\n';
+    std::cout << Utils::prompt(1) << "Extend of coordinates:\n"
+            <<"   " << minx_ << " <= X <= " << maxx_ << '\n'
+            <<"   " << miny_ << " <= Y <= " << maxy_ << '\n'
+            <<"   " << minz_ << " <= Z <= " << maxz_ << '\n';
+    if (verbosity_ > 2) {
+        std::cout << Utils::prompt(2) << "Distance matrix:\n";
         for (int idx = 0; idx < dists.size();) {
             const int tabs = idx / (cbatoms_.size() - 1) + 1;
             for (int i = 0; i < tabs; ++i) {

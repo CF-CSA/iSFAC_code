@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 
         //! do some sanity checks before preparing for CC
         consistency_checks(reference, moving, parser.verbosity());
-        if (parser.verbosity() > 3) {
+        if (parser.verbosity() > 1) {
             std::cout << Utils::prompt(2) << "Information about maps after consistence checks:\n";
             reference.info();
             moving.info();

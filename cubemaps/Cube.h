@@ -42,8 +42,11 @@ private:
     int Vx_, Vy_, Vz_;
     //! directions of grid
     Vec3 ex_, ey_, ez_;
-    //! cross product of grid directions: ux_ = ey_ x ez_ etc.
+    //! cross product of grid directions: ux_ = ey_ x ez_, normalised to ex_*ux_=1 etc.
     Vec3 ux_, uy_, uz_;
+    //! mininum and maximum coordinates of atoms:
+    double minx_, maxx_, miny_, maxy_, minz_, maxz_;
+    
     std::vector<cbAtom> cbatoms_;
     std::vector<double> gridvalues_;
     short verbosity_;
