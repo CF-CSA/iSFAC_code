@@ -7,10 +7,13 @@
  *print a short welcome notice
  */
 std::ostream& hello(std::ostream& outp) {
-    outp << "!---------------------------------------------------------------!\n"
-            << "! cubemaps: Compute Pearson CC between two cube files        !\n"
-            << "! Copyright:    Tim Gruene, 2024                             !\n"
-            << "!------------------------------------------------------------!\n"
+    outp 
+            << "!---------------------------------------------------------------!\n"
+            << "! cubemaps: Compute Pearson CC between two cube files           !\n"
+            << "!           including transformation. Atoms must be in order    !\n"
+            << "!           and will be concatenated to shorter list            !\n"
+            << "! Copyright:    Tim Gruene, 2024                                !\n"
+            << "!---------------------------------------------------------------!\n"
             ;
     return outp;
 }

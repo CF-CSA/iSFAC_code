@@ -58,7 +58,7 @@ std::vector<Vec3> Utils::vdw_vol_grid(const std::vector<Atom>& atoms, double gri
                 for (auto atom : atoms) {
                     if (atom.insphere(xyz)) {
                         vdw_volume.push_back(xyz);
-                        if (verbosity > 2) {
+                        if (verbosity > 3) {
                             std::cout << xyz << '\n';
                         }
                         break;
@@ -68,14 +68,10 @@ std::vector<Vec3> Utils::vdw_vol_grid(const std::vector<Atom>& atoms, double gri
         }
     }
     if (verbosity > 0) {
-        std::cout << Utils::prompt(0) << "Generated bounding box with " << grid.size() << " points and VdW volume with "
-                << vdw_volume.size() << " points\n";
-    }
-    if (verbosity > 3) {
-        std::cout << Utils::prompt(2) << "Coordinate points of the entire grid:\n";
-        for (auto x: grid) {
-            std::cout << x << '\n';
-        }
+        std::cout << Utils::prompt(0) << "Generated bounding box with "
+                << grid.size() << " points and VdW volume with "
+                << vdw_volume.size() << " points\n"
+                << Utils::prompt(0) << "Grid spacing: " << gridspacing << "A\n";
     }
 
     return vdw_volume;
@@ -98,18 +94,18 @@ std::vector<Vec3> Utils::centroid(const std::vector<Vec3>& coords) {
 }
 
 /**
- * Compute the upper triangle of squared distances between a set of coordinates
- * main diagonal is omitted
+ * Compute the symmetric fill matrix of intramolecular distances for a set 
+ * f coordinates
  * @param coords
  * @return 
  */
 std::vector<double> Utils::distance_matrix(const std::vector<Vec3>& coords) {
     std::vector<double> distances;
-    const int N = (coords.size()*(coords.size() - 1)) / 2;
+    const int N = (coords.size() * coords.size());
     distances.reserve(N);
 
     for (std::vector<Vec3>::const_iterator itr = coords.begin(); itr != coords.end() - 1; ++itr) {
-        for (std::vector<Vec3>::const_iterator itc = itr + 1; itc != coords.end(); ++itc) {
+        for (std::vector<Vec3>::const_iterator itc = coords.begin(); itc != coords.end(); ++itc) {
             double dsqd = ((*itr) - (*itc)).lengthsq();
             distances.push_back(std::sqrt(dsqd));
         }

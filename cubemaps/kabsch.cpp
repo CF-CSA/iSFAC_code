@@ -88,6 +88,7 @@ int kabsch(
 
     /* compute centroid of X */
     gsl_vector_set_zero(cx);
+
     for (i = size; i > 0;) {
         gsl_vector_const_view row = gsl_matrix_const_row(X, --i);
         gsl_vector_add(cx, &row.vector);

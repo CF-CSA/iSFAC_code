@@ -227,6 +227,28 @@ double Cube::mapValue(const Vec3& pos) const {
     int iz = std::round(fz);
 
 
+    // impose translational symmetry
+    if (verbosity_ > 2) {
+        if (ix < 0 || Vx_ <= ix) {
+            std::cout << Utils::prompt(2) << "Imposing translational symmetry for ix = " << ix
+                    << ", Vx_ = " << Vx_ << '\n';
+        }
+        if (iy < 0 || Vy_ <= iy) {
+            std::cout << Utils::prompt(2) << "Imposing translational symmetry for iy = " << iy 
+                    << ", Vy_ = " << Vy_ << '\n';
+        }
+        if (iz < 0 || Vz_ <= iz) {
+            std::cout << Utils::prompt(2) << "Imposing translational symmetry for iz = " << iz 
+                    << ", Vz_ = " << Vz_ << '\n';
+        }
+    }
+    ix = ix % Vx_;
+    if (ix < 0) ix += Vx_;
+    iy = iy % Vy_;
+    if (iy < 0) iy += Vy_;
+    iz = iz % Vz_;
+    if (iz < 0) iz += Vz_;
+    
     if (ix < 0 || ix + 1 >= Vx_ || iy < 0 || iy + 1 >= Vy_ || iz < 0 || iz + 1 >= Vz_) {
         throw std::logic_error("Index out of range");
     }
@@ -257,7 +279,7 @@ double Cube::mapValue(const Vec3& pos) const {
 }
 
 /**
- create a list of atoms from cbAtoms
+ create a list of Atoms from cbAtoms
  */
 std::vector<Atom> Cube::atoms() const {
     std::vector<Atom> a;
@@ -267,6 +289,11 @@ std::vector<Atom> Cube::atoms() const {
     return a;
 }
 
+/**
+ * compute the distances of all atoms from @c pos
+ * @param pos
+ * @return 
+ */
 std::vector<double> Cube::distances_sq(const Vec3& pos) const {
     std::vector<double> d2s(0);
     for (auto atom : cbatoms_) {
@@ -276,6 +303,11 @@ std::vector<double> Cube::distances_sq(const Vec3& pos) const {
     return d2s;
 }
 
+/**
+ * provide coordinates for atom number @c idx
+ * @param idx
+ * @return 
+ */
 Vec3 Cube::pos(unsigned short idx) const {
     if (idx > numAtoms_) {
         if (verbosity_ > 1) {
@@ -405,12 +437,16 @@ double Cube::CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo
     }
     std::vector<Vec3> vdw1 = Utils::vdw_vol_grid(atoms1, vdw_grid_spacing, verbosity_);
     if (verbosity_ > 2) {
-        std::cout << Utils::prompt(2) << " Printing positions and valus on VdW volumne\n";
+        std::cout << Utils::prompt(2) << " Printing positions and values on VdW volume\n";
     }
     for (auto x : vdw1) {
         Vec3 pos(x.x(), x.y(), x.z());
         try {
             double v1 = mapValue(pos);
+            // 
+            // this does not work yet. In test example, coordinates should be identical
+            // position for other map
+            pos = U*(pos - centroid_)+T + other.centroid();
             double v2 = other.mapValue(pos);
             g1.push_back(v1);
             g2.push_back(v2);
@@ -494,7 +530,7 @@ Vec3 Cube::calc_centroid(int N) {
 }
 
 /**
- * Determine how to move @c other to this:
+ * Determine how to transform coordinates of @this to @c otherto move @c other to this
  * move to centroid, get R from Kabsch, move to centroid to this
  * @param cube
  * @return 
@@ -502,13 +538,22 @@ Vec3 Cube::calc_centroid(int N) {
 std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other) const {
 
     // prepare calling kabsch function
-    gsl_matrix* fixed;
-    gsl_matrix* moved;
+    gsl_matrix* fixed; // Y in algorithm, moved to 
+    gsl_matrix* moved; // X in algorithm
     // compute Kabsch transform where there is fixed, and this is moved
     // that way, iterating through the map of fixed can be transformed to 
     // moved
 
-    fixed = gsl_matrix_alloc(cbatoms_.size(), 3);
+    // count number of non-H atoms
+    int natoms = 0;
+    for (auto x: cbatoms_) {
+        if (x.Z() == 1) continue;
+        else ++natoms;
+    }
+
+    fixed = gsl_matrix_alloc(natoms, 3);
+    moved = gsl_matrix_alloc(natoms, 3);
+
     size_t idx(0);
     for (auto x : cbatoms_) {
         if (x.Z() == 1) continue;
@@ -518,7 +563,6 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other) const {
         ++idx;
     }
 
-    moved = gsl_matrix_alloc(cbatoms_.size(), 3);
     idx = 0;
     for (auto x : other.cbatoms_) {
         if (x.Z() == 1) continue;
@@ -531,7 +575,7 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other) const {
     gsl_matrix* U = gsl_matrix_alloc(3, 3);
     gsl_vector* t = gsl_vector_alloc(3);
 
-    kabsch(cbatoms_.size(), moved, fixed, U, t, NULL);
+    kabsch(natoms, fixed, moved, U, t, NULL);
     // Mat33 kabschR =Utils::KabschR(coords1, coords2);
     Mat33 kabschR;
     for (int r = 0; r < 3; ++r) {
@@ -572,8 +616,7 @@ void Cube::transform_coords(const std::pair<Mat33, Vec3>& kabschTrafo, const Vec
     const Mat33 M = kabschTrafo.first;
     const Vec3 T = kabschTrafo.second;
     for (const auto& a : cbatoms_) {
-        Vec3 x = a.pos() - centroid_;
-        x = M * x + T + centroid_;
+        Vec3 x = M*(a.pos() - centroid_) +T + centroid_;
         std::cout << a.Z() << " before: " << a.pos() << " after: " << x << '\n';
     }
 }
@@ -649,14 +692,9 @@ void Cube::info() const {
             <<"   " << minz_ << " <= Z <= " << maxz_ << '\n';
     if (verbosity_ > 2) {
         std::cout << Utils::prompt(2) << "Distance matrix:\n";
-        for (int idx = 0; idx < dists.size();) {
-            const int tabs = idx / (cbatoms_.size() - 1) + 1;
-            for (int i = 0; i < tabs; ++i) {
-                std::cout << std::setw(7) << ' ';
-            }
-            for (int i = tabs; i < cbatoms_.size(); ++i) {
-                std::cout << std::fixed << std::setw(7) << std::setprecision(2) << dists[idx];
-                ++idx;
+        for (int i = 0; i < cbatoms_.size(); ++i) {
+            for (int j = 0; j < cbatoms_.size(); ++j) {
+                std::cout << std::fixed << std::setw(7) << std::setprecision(2) << dists[j+cbatoms_.size()*i];
             }
             std::cout << '\n';
         }
