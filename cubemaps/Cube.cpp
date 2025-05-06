@@ -562,6 +562,11 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other, Vec3& ctrd_this, Vec3
         if (x.Z() == 1) continue;
         else ++natoms;
     }
+    if (verbosity_ > 1) {
+    std::cout << Utils::prompt(1) << "makeKabsch: Number of atoms in reference cube: " 
+    	<< cbatoms_.size() 
+	<< " Number of non-H atoms: " << natoms << std::endl;
+    }
 
     fixed = gsl_matrix_alloc(natoms, 3); // other
     moved = gsl_matrix_alloc(natoms, 3); // this
@@ -577,6 +582,7 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other, Vec3& ctrd_this, Vec3
 
     idx = 0;
     for (auto x : other.cbatoms_) {
+        if (idx >= natoms) break;
         if (x.Z() == 1) continue;
         gsl_matrix_set(fixed, idx, 0, x.pos().x());
         gsl_matrix_set(fixed, idx, 1, x.pos().y());
