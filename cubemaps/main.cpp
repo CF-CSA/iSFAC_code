@@ -41,7 +41,10 @@ int main(int argc, char** argv) {
         }
 
         // compute transformation how to map the reference onto the moving matrix
-        std::pair<Mat33, Vec3> kabschTrafo = reference.makeKabsch(moving);
+        Vec3 centroid_reference, centroid_moving;
+        std::pair<Mat33, Vec3> kabschTrafo = reference.makeKabsch(moving, centroid_reference, centroid_moving);
+        reference.centroid(centroid_reference.x(), centroid_reference.y(), centroid_reference.z());
+        moving.centroid(centroid_moving.x(), centroid_moving.y(), centroid_moving.z());
         if (parser.verbosity() > 2) {
             // print transformed coords, for debugging, not required
             reference.transform_coords(kabschTrafo, moving.centroid());

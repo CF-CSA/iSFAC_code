@@ -37,6 +37,8 @@
 #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_blas.h>
 
+#include <iostream>
+
 /* gsl does not provide it */
 static inline void gsl_vector_cross(
         const gsl_vector *a,
@@ -60,7 +62,7 @@ static inline void gsl_vector_cross(
  * compute Kabsch transformation from a moving target to
  * a reference target 
  * @param size
- * @param X 
+ * @param X move X to Y
  * @param Y input reference coordinates, 
  * @param U return of rotation
  * @param t return of translation
@@ -73,13 +75,14 @@ int kabsch(
         gsl_matrix *Y, /* the points to move to */
         gsl_matrix *U, /* the rotation matrix */
         gsl_vector *t, /* the translation vector */
+        gsl_vector *cx,
+        gsl_vector *cy,
+
         double *s /* the optimal scaling, if != 0 */
         ) {
     unsigned int i, j, k;
     int U_ok = 1;
     double n = 1.0 / size;
-    gsl_vector *cx = gsl_vector_alloc(3); /* centroid of X */
-    gsl_vector *cy = gsl_vector_alloc(3); /* centroid of Y */
     gsl_matrix *R = gsl_matrix_alloc(3, 3); /* Kabsch's R */
     gsl_matrix *RTR = gsl_matrix_alloc(3, 3); /* R_trans * R (and Kabsch's bk) */
     gsl_eigen_symmv_workspace *espace = gsl_eigen_symmv_alloc(3);
@@ -103,6 +106,16 @@ int kabsch(
     }
     gsl_vector_scale(cy, n);
     
+    std::cout << "---> Centroid for X (moved target): " 
+            << gsl_vector_get(cx, 0) << ' '
+            << gsl_vector_get(cx, 1) << ' '
+            << gsl_vector_get(cx, 2) << '\n';
+    
+    std::cout << "---> Centroid for Y (fixed target): " 
+            << gsl_vector_get(cy, 0) << ' '
+            << gsl_vector_get(cy, 1) << ' '
+            << gsl_vector_get(cy, 2) << '\n';
+
     /* move X to origin */
     for (i = size; i > 0;) {
         gsl_vector_view row = gsl_matrix_row(X, --i);
@@ -213,8 +226,6 @@ int kabsch(
     gsl_eigen_symmv_free(espace);
     gsl_matrix_free(RTR);
     gsl_matrix_free(R);
-    gsl_vector_free(cy);
-    gsl_vector_free(cx);
 
     return U_ok;
 }

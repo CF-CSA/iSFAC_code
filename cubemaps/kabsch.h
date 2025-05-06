@@ -39,36 +39,38 @@
 extern "C" {
 #endif
 
-/*
-   preconditions:
-     size > 0
-     X and Y point to (size x 3)-matrices specifying 3D points x_i and y_i
-     U points to a (3 x 3)-matrix
-     t points to a (3)-vector
-     s points to double
-   postconditions if return 1:
-     X and Y will be centralized at their respective origins
-     U will hold the rotation
-     t will hold the translation
-     s will hold the scaling value
-     such that:
-       sum_i (U * s * x_i + t - y_i)^2  is minimal
-   postconditions if return 0:
-     X and Y will be centralized at their respective origins
-     U will hold the identity
-     t will hold the difference vector of the centroids t = cy -cx
-     s will hold 1.0
-   note:
-     if s == NULL, no scaling is computed
-*/
-int kabsch(
-  unsigned int size,
-  gsl_matrix *X,
-  gsl_matrix *Y,
-  gsl_matrix *U,
-  gsl_vector *t,
-  double *s
-);
+    /*
+       preconditions:
+         size > 0
+         X and Y point to (size x 3)-matrices specifying 3D points x_i and y_i
+         U points to a (3 x 3)-matrix
+         t points to a (3)-vector
+         s points to double
+       postconditions if return 1:
+         X and Y will be centralized at their respective origins
+         U will hold the rotation
+         t will hold the translation
+         s will hold the scaling value
+         such that:
+           sum_i (U * s * x_i + t - y_i)^2  is minimal
+       postconditions if return 0:
+         X and Y will be centralized at their respective origins
+         U will hold the identity
+         t will hold the difference vector of the centroids t = cy -cx
+         s will hold 1.0
+       note:
+         if s == NULL, no scaling is computed
+     */
+    int kabsch(
+            unsigned int size,
+            gsl_matrix *X,
+            gsl_matrix *Y,
+            gsl_matrix *U,
+            gsl_vector *t,
+            gsl_vector *cx,
+            gsl_vector *cy,
+            double *s
+            );
 
 #if defined(__cplusplus)
 }

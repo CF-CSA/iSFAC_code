@@ -36,7 +36,7 @@ private:
     int numAtoms_;
     //! origin from cube file
     Vec3 origin_;
-    //! centroid from coordinates
+    //! centroid from coordinates computed in kabsch algorithm
     Vec3 centroid_;
     //! number of voxels in each direction
     int Vx_, Vy_, Vz_;
@@ -75,6 +75,8 @@ public:
     Vec3 pos(unsigned short idx) const;
     
     Vec3 centroid() const { return centroid_; }
+    // set centroid with three coordinates
+    void centroid(double x, double y, double z);
 
     // list of atoms
     std::vector<Atom> atoms() const;
@@ -88,7 +90,7 @@ public:
     double deltaTrace(const Cube& cubemap) const;
     
     //! get Kabsch rotation to rotate other cube onto this one
-    std::pair<Mat33, Vec3> makeKabsch(const Cube& cube) const;
+    std::pair<Mat33, Vec3> makeKabsch(const Cube& cube, Vec3& ctrd_this, Vec3& ctrd_other) const;
     
     //! print coordinates before and after moving with Kabsch transform
     void transform_coords(const std::pair<Mat33,Vec3>& kabschTrafo, const Vec3& ctr_target);

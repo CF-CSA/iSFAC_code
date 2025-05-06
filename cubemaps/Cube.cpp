@@ -319,6 +319,16 @@ Vec3 Cube::pos(unsigned short idx) const {
 }
 
 /**
+ * explicitly set the centroid with three values
+ * @param x
+ * @param y
+ * @param z
+ */
+void Cube::centroid(double x, double y, double z) {
+    centroid_ = Vec3(x,y,z);
+}
+
+/**
  * compare coordinates with another map
  * throws an error if different number of atoms
  */
@@ -530,12 +540,14 @@ Vec3 Cube::calc_centroid(int N) {
 }
 
 /**
- * Determine how to transform coordinates of @this to @c otherto move @c other to this
+ * Determine how to transform coordinates of @this to @c other to move @c other to this
  * move to centroid, get R from Kabsch, move to centroid to this
  * @param cube
+ * @param ctrd_this  centroid of this cube, computed by Kabsch algorithm
+ * * @param ctrd_other  centroid of other cube, computed by Kabsch algorithm
  * @return 
  */
-std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other) const {
+std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other, Vec3& ctrd_this, Vec3& ctrd_other) const {
 
     // prepare calling kabsch function
     gsl_matrix* fixed; // Y in algorithm, moved to 
@@ -551,20 +563,11 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other) const {
         else ++natoms;
     }
 
-    fixed = gsl_matrix_alloc(natoms, 3);
-    moved = gsl_matrix_alloc(natoms, 3);
+    fixed = gsl_matrix_alloc(natoms, 3); // other
+    moved = gsl_matrix_alloc(natoms, 3); // this
 
     size_t idx(0);
     for (auto x : cbatoms_) {
-        if (x.Z() == 1) continue;
-        gsl_matrix_set(fixed, idx, 0, x.pos().x());
-        gsl_matrix_set(fixed, idx, 1, x.pos().y());
-        gsl_matrix_set(fixed, idx, 2, x.pos().z());
-        ++idx;
-    }
-
-    idx = 0;
-    for (auto x : other.cbatoms_) {
         if (x.Z() == 1) continue;
         gsl_matrix_set(moved, idx, 0, x.pos().x());
         gsl_matrix_set(moved, idx, 1, x.pos().y());
@@ -572,10 +575,21 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other) const {
         ++idx;
     }
 
+    idx = 0;
+    for (auto x : other.cbatoms_) {
+        if (x.Z() == 1) continue;
+        gsl_matrix_set(fixed, idx, 0, x.pos().x());
+        gsl_matrix_set(fixed, idx, 1, x.pos().y());
+        gsl_matrix_set(fixed, idx, 2, x.pos().z());
+        ++idx;
+    }
+
     gsl_matrix* U = gsl_matrix_alloc(3, 3);
     gsl_vector* t = gsl_vector_alloc(3);
+    gsl_vector* cx = gsl_vector_alloc(3);
+    gsl_vector* cy = gsl_vector_alloc(3);
 
-    kabsch(natoms, fixed, moved, U, t, NULL);
+    kabsch(natoms, moved, fixed, U, t, cx, cy, NULL);
     // Mat33 kabschR =Utils::KabschR(coords1, coords2);
     Mat33 kabschR;
     for (int r = 0; r < 3; ++r) {
@@ -585,6 +599,9 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other) const {
     }
 
     Vec3 kabschT(gsl_vector_get(t, 0), gsl_vector_get(t, 1), gsl_vector_get(t, 2));
+    
+    ctrd_this = Vec3(gsl_vector_get(cx, 0), gsl_vector_get(cx, 1), gsl_vector_get(cx, 2));
+    ctrd_other = Vec3(gsl_vector_get(cy, 0), gsl_vector_get(cy, 1), gsl_vector_get(cy, 2));
 
 
     if (verbosity_ > 2) {
@@ -602,6 +619,8 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other) const {
     gsl_matrix_free(moved);
     gsl_matrix_free(U);
     gsl_vector_free(t);
+    gsl_vector_free(cx);
+    gsl_vector_free(cy);
 
     //return is Kabsch matrix and inverse of centre
     return K;
@@ -615,8 +634,14 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other) const {
 void Cube::transform_coords(const std::pair<Mat33, Vec3>& kabschTrafo, const Vec3& ctr_target) {
     const Mat33 M = kabschTrafo.first;
     const Vec3 T = kabschTrafo.second;
+    std::cout << Utils::prompt(2) << "Simulating Kabsch transformation with centroids:\n"
+            << centroid() << " and target centroid " << ctr_target << '\n'
+            << "M = " << M 
+            << '\n'
+            << "T = " << T
+            << '\n';
     for (const auto& a : cbatoms_) {
-        Vec3 x = M*(a.pos() - centroid_) +T + centroid_;
+        Vec3 x = M*(a.pos() - centroid_) +T + ctr_target;
         std::cout << a.Z() << " before: " << a.pos() << " after: " << x << '\n';
     }
 }
