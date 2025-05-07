@@ -90,16 +90,16 @@ public:
     double deltaTrace(const Cube& cubemap) const;
     
     //! get Kabsch rotation to rotate other cube onto this one
-    std::pair<Mat33, Vec3> makeKabsch(const Cube& cube, Vec3& ctrd_this, Vec3& ctrd_other) const;
+    Mat33 makeKabsch(const Cube& cube, Vec3& ctrd_this, Vec3& ctrd_other) const;
     
     //! print coordinates before and after moving with Kabsch transform
-    void transform_coords(const std::pair<Mat33,Vec3>& kabschTrafo, const Vec3& ctr_target);
+    void transform_coords(const Mat33& kabschTrafo, const Vec3& ctr_target);
     
     //! compute pearson coefficient with a second grid
-    double CC(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) const;
+    double CC(const Cube& other, const Mat33& KabschTrafo) const;
     
     //! compute Pearson coefficient with second cube on VdW surface
-    double CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo, const double& vdw_grid_spacing) const;
+    double CC_VdW(const Cube& other, const Mat33& KabschTrafo, const double& vdw_grid_spacing) const;
     
     //! print some information about map
     void info() const;

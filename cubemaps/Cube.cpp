@@ -357,9 +357,7 @@ double Cube::deltaTrace(const Cube& cubemap) const {
  * @param cube
  * @return 
  */
-double Cube::CC(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) const {
-    const Mat33 U = KabschTrafo.first;
-    const Vec3 T = KabschTrafo.second;
+double Cube::CC(const Cube& other, const Mat33 & kR) const {
     std::vector<double> g1, g2;
     //! ensure centroid is properly computed
     //
@@ -383,7 +381,7 @@ double Cube::CC(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) co
                 pos = pos - centroid_;
                 // compute position of grid index corresponding to position
                 // in other map
-                pos = U * pos + T + other.centroid();
+                pos = kR * pos  + other.centroid();
                 if (verbosity_ > 1) {
                     std::cout << " after trafo: " << pos << '\n';
                 }
@@ -431,9 +429,7 @@ double Cube::CC(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo) co
  * @param cube
  * @return 
  */
-double Cube::CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo, const double& vdw_grid_spacing) const {
-    const Mat33 U = KabschTrafo.first;
-    const Vec3 T = KabschTrafo.second;
+double Cube::CC_VdW(const Cube& other, const Mat33& kR, const double& vdw_grid_spacing) const {
     std::vector<double> g1, g2;
     g1.reserve(gridvalues_.size());
     g2.reserve(gridvalues_.size());
@@ -454,7 +450,7 @@ double Cube::CC_VdW(const Cube& other, const std::pair<Mat33, Vec3>& KabschTrafo
             // 
             // this does not work yet. In test example, coordinates should be identical
             // position for other map
-            pos = U*(pos - centroid_)+T + other.centroid();
+            pos = kR*(pos - centroid_) + other.centroid();
             double v2 = other.mapValue(pos);
             g1.push_back(v1);
             g2.push_back(v2);
@@ -542,10 +538,10 @@ Vec3 Cube::calc_centroid(int N) {
  * move to centroid, get R from Kabsch, move to centroid to this
  * @param cube
  * @param ctrd_this  centroid of this cube, computed by Kabsch algorithm
- * * @param ctrd_other  centroid of other cube, computed by Kabsch algorithm
- * @return 
+ * @param ctrd_other  centroid of other cube, computed by Kabsch algorithm
+ * @return Rotation matrix. Transformation: (R (x-cx) + cy is point in other)
  */
-std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other, Vec3& ctrd_this, Vec3& ctrd_other) const {
+Mat33 Cube::makeKabsch(const Cube& other, Vec3& ctrd_this, Vec3& ctrd_other) const {
 
     // prepare calling kabsch function
     gsl_matrix* fixed; // Y in algorithm, moved to 
@@ -601,8 +597,6 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other, Vec3& ctrd_this, Vec3
         }
     }
 
-    Vec3 kabschT(gsl_vector_get(t, 0), gsl_vector_get(t, 1), gsl_vector_get(t, 2));
-    
     ctrd_this = Vec3(gsl_vector_get(cx, 0), gsl_vector_get(cx, 1), gsl_vector_get(cx, 2));
     ctrd_other = Vec3(gsl_vector_get(cy, 0), gsl_vector_get(cy, 1), gsl_vector_get(cy, 2));
 
@@ -616,8 +610,6 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other, Vec3& ctrd_this, Vec3
             << std::endl;
     }
 
-    std::pair<Mat33, Vec3> K(kabschR, kabschT);
-
     gsl_matrix_free(fixed);
     gsl_matrix_free(moved);
     gsl_matrix_free(U);
@@ -626,7 +618,7 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other, Vec3& ctrd_this, Vec3
     gsl_vector_free(cy);
 
     //return is Kabsch rotation matrix and translation vector
-    return K;
+    return kabschR;
 }
 
 /**
@@ -634,17 +626,13 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other, Vec3& ctrd_this, Vec3
  * @param kabschTrafo
  * @param ctr_target
  */
-void Cube::transform_coords(const std::pair<Mat33, Vec3>& kabschTrafo, const Vec3& ctr_target) {
-    const Mat33 M = kabschTrafo.first;
-    const Vec3 T = kabschTrafo.second;
+void Cube::transform_coords(const Mat33& kR, const Vec3& ctr_target) {
     std::cout << Utils::prompt(2) << "Simulating Kabsch transformation with centroids:\n"
             << centroid() << " and target centroid " << ctr_target << '\n'
-            << "M = " << M 
-            << '\n'
-            << "T = " << T
+            << "kR = " << kR
             << '\n';
     for (const auto& a : cbatoms_) {
-        Vec3 x = M*(a.pos() - centroid_) +T + ctr_target;
+        Vec3 x = kR*(a.pos() - centroid_) + ctr_target;
         std::cout << a.Z() << " before: " << a.pos() << " after: " << x << '\n';
     }
 }
