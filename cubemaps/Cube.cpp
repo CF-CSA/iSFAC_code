@@ -67,32 +67,30 @@ void Cube::readMap(const std::string& fname) {
         inp >> numAtoms_ >> orgx >> orgy >> orgz;
 
         inp >> Vx_ >> x >> y >> z;
-        if (Vx_ < 0) {
-            ex_ = Vec3(x, y, z);
-
-        } else {
-            ex_ = Vec3(a0toA*x, a0toA*y, a0toA * z);
+        ex_ = Vec3(x, y, z);
+        if (Vx_ > 0) {
+            ex_ = a0toA*ex_;
             orgx *= a0toA;
         }
 
         inp >> Vy_ >> x >> y >> z;
-        if (Vy_ < 0) { // unit already in A
-            ey_ = Vec3(x, y, z);
-        } else {
-            ey_ = Vec3(a0toA*x, a0toA*y, a0toA * z);
+        ey_ = Vec3(x, y, z);
+        if (Vy_ > 0) {
+            ey_ = a0toA*ey_;
             orgy *= a0toA;
         }
 
         inp >> Vz_ >> x >> y >> z;
-        if (Vz_ < 0) {// unit already in A
-            ez_ = Vec3(x, y, z);
-        } else {
-            ez_ = Vec3(a0toA*x, a0toA*y, a0toA * z);
+        ez_ = Vec3(x, y, z);
+        if (Vz_ > 0) {
+            ez_ = a0toA*ez_;
             orgz *= a0toA;
         }
         origin_ = Vec3(orgx, orgy, orgz);
 
-
+        if (verbosity_ > 1) {
+            std::cout << Utils::prompt(1) << "Atom Z, q, and coordinates converted to A:\n";
+        }
         for (int i = 0; i < numAtoms_; ++i) {
             int Z;
             double q;
@@ -110,8 +108,8 @@ void Cube::readMap(const std::string& fname) {
             if (inp.fail()) {
                 std::cout << "---> Failure reading atom.\n";
                 throw myExcepts::Format("Premature end of Atom list in Cube file");
-            } else if (verbosity_ > 2) {
-                std::cout << Utils::prompt(2) << "Read atom " << Z << ' ' << q << ' '
+            } else if (verbosity_ > 1) {
+                std::cout << Utils::prompt(1) << "Read atom " << Z << ' ' << q << ' '
                         << x << ' ' << y << ' ' << z << '\n';
             }
             cbatoms_.push_back(cbAtom(Z, q, x, y, z));
@@ -552,9 +550,8 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other, Vec3& ctrd_this, Vec3
     // prepare calling kabsch function
     gsl_matrix* fixed; // Y in algorithm, moved to 
     gsl_matrix* moved; // X in algorithm
-    // compute Kabsch transform where there is fixed, and this is moved
-    // that way, iterating through the map of fixed can be transformed to 
-    // moved
+    // compute Kabsch transform that transforms coordiates of this onto
+    // coordinates of other, each after subtracting their respective centroids
 
     // count number of non-H atoms
     int natoms = 0;
@@ -628,7 +625,7 @@ std::pair<Mat33, Vec3> Cube::makeKabsch(const Cube& other, Vec3& ctrd_this, Vec3
     gsl_vector_free(cx);
     gsl_vector_free(cy);
 
-    //return is Kabsch matrix and inverse of centre
+    //return is Kabsch rotation matrix and translation vector
     return K;
 }
 
@@ -672,16 +669,14 @@ bool consistency_checks(Cube& one, Cube& two, unsigned char verbosity) {
     two.calc_centroid(-1);
 
     if (verbosity > 2) {
+        std::cout << Utils::prompt(2) << "Producing distance matrix for first map with " << one.coords().size() << " coordinates.\n";
         one.info();
+    }
+    if (verbosity > 2) {
+        std::cout << Utils::prompt(2) << "Producing distance matrix for second map with " << two.coords().size() << " coordinates.\n";
         two.info();
     }
-    if (verbosity > 1) {
-        std::cout << Utils::prompt(2) << "Producing distance matrix for first map with " << one.coords().size() << " coordinates.\n";
-    }
     const std::vector<double> d2one(Utils::distance_matrix(one.coords()));
-    if (verbosity > 1) {
-        std::cout << Utils::prompt(2) << "Producing distance matrix for second map with " << two.coords().size() << " coordinates.\n";
-    }
     const std::vector<double> d2two(Utils::distance_matrix(two.coords()));
     // compute sum pairwise distances
     std::vector<double>::const_iterator it1, it2;

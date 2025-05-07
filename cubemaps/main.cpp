@@ -47,6 +47,7 @@ int main(int argc, char** argv) {
         moving.centroid(centroid_moving.x(), centroid_moving.y(), centroid_moving.z());
         if (parser.verbosity() > 2) {
             // print transformed coords, for debugging, not required
+            std::cout << Utils::prompt(2) << "Test transforming reference coordinates into moving coordinates:\n";
             reference.transform_coords(kabschTrafo, moving.centroid());
         }
         

@@ -94,6 +94,10 @@ int kabsch(
 
     for (i = size; i > 0;) {
         gsl_vector_const_view row = gsl_matrix_const_row(X, --i);
+        std::cout << "---> Adding coords to centroid of X: "
+                << gsl_vector_get(&row.vector, 0) << ' '
+                << gsl_vector_get(&row.vector, 1) << ' '
+                << gsl_vector_get(&row.vector, 2) << '\n';
         gsl_vector_add(cx, &row.vector);
     }
     gsl_vector_scale(cx, n);
@@ -220,6 +224,34 @@ int kabsch(
     /* compute t = cy - s * U * cx  */
     gsl_vector_memcpy(t, cy);
     gsl_blas_dgemv(CblasNoTrans, -1.0, U, cx, 1.0, t);
+    // debugging: comput U*cx + t, should be cy
+    double cyx =0;
+    double cyy=0;
+    double cyz = 0;
+    for (int c = 0; c < 3; ++c) {
+        cyx +=  gsl_matrix_get(U, c, 0) * gsl_vector_get(cx, c);
+        cyy +=  gsl_matrix_get(U, c, 1) * gsl_vector_get(cx, c);
+        cyz +=  gsl_matrix_get(U, c, 2) * gsl_vector_get(cx, c);
+    }
+    std::cout << " Transformation U*cx+t and cy:\n"
+            << cyx << ' ' << gsl_vector_get(cy, 0) << '\n'
+            << cyy << ' ' << gsl_vector_get(cy, 1) << '\n'
+            << cyz << ' ' << gsl_vector_get(cy, 2) << '\n';
+    //  debugging: print U*X + t and Y
+    for (int a = 0; a < size; ++a) {
+        // transform a'th atom of X
+        double xt = gsl_vector_get(t, 0);
+        double yt = gsl_vector_get(t, 1);
+        double zt = gsl_vector_get(t, 2);
+        for (int c = 0; c < 3; ++c) {
+            xt += gsl_matrix_get(U, 0, c) * gsl_matrix_get(X, a, c);
+            yt += gsl_matrix_get(U, 1, c) * gsl_matrix_get(X, a, c);
+            zt += gsl_matrix_get(U, 2, c) * gsl_matrix_get(X, a, c);
+        }
+        std::cout << "---> Kabsch for atom " << a << ": X: " << gsl_matrix_get(X, a, 0) << " X': " << xt << " -> " << gsl_matrix_get(Y, a, 0) << '\n' 
+                  << "                     " << a << ": Y: " << gsl_matrix_get(X, a, 1) << " Y': " << yt << " -> " << gsl_matrix_get(Y, a, 1) << '\n' 
+                  << "                     " << a << ": Z: " << gsl_matrix_get(X, a, 2) << " Z': " << zt << " -> " << gsl_matrix_get(Y, a, 2) << '\n'; 
+    }
 
     gsl_vector_free(eval);
     gsl_matrix_free(evec);
