@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="100">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>Atom.h</itemPath>
+      <itemPath>Cubefile.h</itemPath>
+      <itemPath>FCFInfo.h</itemPath>
+      <itemPath>FCFfile.h</itemPath>
+      <itemPath>FCFitem.h</itemPath>
+      <itemPath>HKL.h</itemPath>
+      <itemPath>HKLops.h</itemPath>
+      <itemPath>Int3x3.h</itemPath>
+      <itemPath>Mat33.h</itemPath>
+      <itemPath>Parser.h</itemPath>
+      <itemPath>Reflex.h</itemPath>
+      <itemPath>ResFile.h</itemPath>
+      <itemPath>Usage.h</itemPath>
+      <itemPath>Utils.h</itemPath>
+      <itemPath>Vec3.h</itemPath>
+      <itemPath>myExceptions.h</itemPath>
+      <itemPath>sxfft.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>Atom.cpp</itemPath>
+      <itemPath>Cubefile.cpp</itemPath>
+      <itemPath>FCFInfo.cpp</itemPath>
+      <itemPath>FCFfile.cpp</itemPath>
+      <itemPath>FCFitem.cpp</itemPath>
+      <itemPath>HKL.cpp</itemPath>
+      <itemPath>HKLops.cpp</itemPath>
+      <itemPath>Int3x3.cpp</itemPath>
+      <itemPath>Mat33.cpp</itemPath>
+      <itemPath>Parser.cpp</itemPath>
+      <itemPath>Reflex.cpp</itemPath>
+      <itemPath>ResFile.cpp</itemPath>
+      <itemPath>Usage.cpp</itemPath>
+      <itemPath>Utils.cpp</itemPath>
+      <itemPath>Vec3.cpp</itemPath>
+      <itemPath>main.cpp</itemPath>
+      <itemPath>sxfft.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="1">
+      <toolsSet>
+        <compilerSet>CLang|CLang</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <ccTool>
+          <standard>11</standard>
+        </ccTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerOptionItem>`pkg-config --libs kissfft-float`</linkerOptionItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="Atom.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Atom.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Cubefile.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Cubefile.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FCFInfo.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="FCFInfo.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FCFfile.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="FCFfile.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FCFitem.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="FCFitem.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="HKL.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="HKL.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="HKLops.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="HKLops.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Int3x3.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Int3x3.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Mat33.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Mat33.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Parser.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Parser.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Reflex.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Reflex.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ResFile.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="ResFile.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Usage.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Usage.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Utils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Utils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Vec3.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Vec3.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="myExceptions.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="sxfft.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="sxfft.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="1">
+      <toolsSet>
+        <compilerSet>CLang|CLang</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <standard>11</standard>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerOptionItem>`pkg-config --libs kissfft-float`</linkerOptionItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="Atom.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Atom.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Cubefile.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Cubefile.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FCFInfo.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="FCFInfo.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FCFfile.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="FCFfile.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FCFitem.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="FCFitem.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="HKL.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="HKL.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="HKLops.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="HKLops.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Int3x3.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Int3x3.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Mat33.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Mat33.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Parser.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Parser.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Reflex.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Reflex.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ResFile.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="ResFile.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Usage.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Usage.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Utils.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Utils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Vec3.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Vec3.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="myExceptions.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="sxfft.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="sxfft.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
