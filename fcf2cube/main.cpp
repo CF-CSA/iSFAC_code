@@ -15,6 +15,7 @@
 #include "Parser.h"
 #include "FCFfile.h"
 #include "Usage.h"
+#include "ResFile.h"
 
 using namespace std;
 
@@ -28,6 +29,7 @@ int main(int argc, char** argv) {
         hello(std::cout);
     }
     FCFfile fcffile(parser.fcffile(), parser.f000(), parser.verbosity());
+    ResFile resfile(parser.resfile(), parser.read_qs(), parser.verbosity());
 
     return 0;
 }

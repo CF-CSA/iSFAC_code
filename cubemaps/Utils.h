@@ -20,32 +20,35 @@
 
 #include <cmath>
 #include <gsl/gsl_matrix_double.h>
+#include <vector>
 
 
 
 namespace Utils {
-std::vector<Vec3> vdw_vol_grid (const std::vector<Atom>& atoms, double gridspacing, int verbosity);
+    std::vector<Vec3> vdw_vol_grid(const std::vector<Atom>& atoms, double gridspacing, int verbosity);
 
-//! translate set of coordinates to their centroid
-std::vector<Vec3> centroid (const std::vector<Vec3>& coords);
+    //! translate set of coordinates to their centroid
+    std::vector<Vec3> centroid(const std::vector<Vec3>& coords);
 
-//! compute Kabsch transpose for two sets of ordered vectors, aleady superposed
-Mat33 KabschR (const std::vector<Vec3>& fixed, const std::vector<Vec3> moved);
+    //! compute Kabsch transpose for two sets of ordered vectors, aleady superposed
+    Mat33 KabschR(const std::vector<Vec3>& fixed, const std::vector<Vec3> moved);
 
-//! use gsl to determine determinant of matrix
-double determinant(const gsl_matrix* M);
+    //! use gsl to determine determinant of matrix
+    double determinant(const gsl_matrix* M);
 
-//! compute upper triangle of distance matrix from list of coordinates
-std::vector<double> distance_matrix(const std::vector<Vec3>& coords);
+    //! compute upper triangle of distance matrix from list of coordinates
+    std::vector<double> distance_matrix(const std::vector<Vec3>& coords);
 
-template <typename T> T CC(const std::vector<T>&, const std::vector<T>&);
+    //! compute pearson correlation coefficient of two numerical vectors
+    template <typename T> T CC(const std::vector<T>&, const std::vector<T>&);
 
-//! compute Pearson CC with GSL
-double CC_gsl(const std::vector<double>&, const std::vector<double>&);
+    //! compute Pearson CC with GSL
+    double CC_gsl(const std::vector<double>&, const std::vector<double>&);
 
-std::string prompt(const unsigned short& verbosity);
+    std::string prompt(const unsigned short& verbosity);
 
 }
+
 /**
  * Calculates the correlation coefficient for two lists of numbers of type T.
  * It is not checked whether their sizes match
@@ -53,28 +56,26 @@ std::string prompt(const unsigned short& verbosity);
  * \param l2    second list of numbers
  */
 template <typename T> T Utils::CC(const std::vector<T>& l1,
-                                        const std::vector<T>& l2)
-{
+        const std::vector<T>& l2) {
     T sum1, sum1_sq, sum2, sum2_sq, sum12;
     T nominator;
     T denominator;
 
     sum1 = sum2 = sum1_sq = sum2_sq = sum12 = 0;
 
-    double inv_list_size = 1.0/l1.size();
+    double inv_list_size = 1.0 / l1.size();
 
-    for (unsigned int i = 0; i < l1.size(); i++)
-    {
-        sum1    += l1[i];
-        sum2    += l2[i];
-        sum1_sq += l1[i]*l1[i];
-        sum2_sq += l2[i]*l2[i];
-        sum12   += l1[i]*l2[i];
+    for (unsigned int i = 0; i < l1.size(); i++) {
+        sum1 += l1[i];
+        sum2 += l2[i];
+        sum1_sq += l1[i] * l1[i];
+        sum2_sq += l2[i] * l2[i];
+        sum12 += l1[i] * l2[i];
     }
 
-    nominator   = sum12 - inv_list_size*sum1 * sum2;
-    denominator = (sum1_sq - inv_list_size * sum1*sum1) *
-                  (sum2_sq - inv_list_size * sum2*sum2);
+    nominator = sum12 - inv_list_size * sum1 * sum2;
+    denominator = (sum1_sq - inv_list_size * sum1 * sum1) *
+            (sum2_sq - inv_list_size * sum2 * sum2);
 
     return (nominator / std::sqrt(denominator));
 }

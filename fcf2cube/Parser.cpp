@@ -25,6 +25,7 @@ fcffile_(""),
 resfile_(""),
 cubefile_(""),
 f000_(std::nan("")),
+        read_qs_(false),
 verbosity_(1) {
 
     std::string outfile;
@@ -33,6 +34,10 @@ verbosity_(1) {
         if (option.substr(0, 2) == "-h" || option.substr(0, 2) == "-?") {
             throw myExcepts::Usage("Help message");
             return;
+        }
+        if (option.substr(0, 2) == "-q") {
+            read_qs_ = true;
+            continue;
         }
 
         if (getoption(option, "-f", fcffile_, i, argc, argv)) continue;

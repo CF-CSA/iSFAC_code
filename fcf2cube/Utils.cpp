@@ -107,3 +107,29 @@ std::string Utils::prompt(const unsigned short& verbosity) {
     return p;
 
 }
+
+/**
+ * 
+ * @param a
+ * @param b
+ * @param c
+ * @param alpha angle in degree
+ * @param beta  angle in degree
+ * @param gamma angle in degree
+ * @return 
+ */
+std::tuple<Vec3, Vec3, Vec3> Utils::unit_cell_vector(double a, double b, double c, double alpha, double beta, double gamma) {
+        const float salpha = std::sin(alpha * M_PI / 180.0);
+    const float calpha = std::cos(alpha * M_PI / 180.0);
+    const float sbeta  = std::sin(beta  * M_PI / 180.0);
+    const float cbeta  = std::cos(beta  * M_PI / 180.0);
+    const float sgamma = std::sin(gamma * M_PI / 180.0);
+    const float cgamma = std::cos(gamma * M_PI / 180.0);
+    Vec3 A = Vec3(a, 0.0, 0.0);
+    Vec3 B = Vec3(b*cgamma, b*sgamma, 0);
+        double cx = c * cbeta;
+    double cy = (c * calpha - cx * cgamma) / sgamma;
+    double cz = std::sqrt(c * c - cx * cx - cy * cy);
+    Vec3 C = Vec3(cx, cy, cz);
+    return std::tuple<Vec3, Vec3, Vec3>(A, B, C);
+}

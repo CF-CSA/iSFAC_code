@@ -25,6 +25,7 @@ private:
     std::string name_;
     std::vector<std::string> non_options_;
     double f000_;
+    bool read_qs_;
     unsigned short verbosity_;
   
     template <typename T> bool getoption(const std::string& option,
@@ -43,7 +44,7 @@ public:
     std::string cubefile() const { return cubefile_; };
     
     double f000() const { return f000_; }
-    
+    bool   read_qs() const { return read_qs_; }
     
     unsigned char verbosity() const { return verbosity_; }
 };
