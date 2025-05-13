@@ -12,10 +12,14 @@
  */
 
 #include <fstream>
+#include <iomanip>
+#include <cstring>
 
 #include "ResFile.h"
 #include "myExceptions.h"
 #include "FCFInfo.h"
+#include "Utils.h"
+#include "defines.h"
 
 ResFile::ResFile(const std::string& filename, bool read_qs = true, short verbosity = 1) :
 filename_(filename),
@@ -90,6 +94,13 @@ int ResFile::resinfo() {
             addsfac(it->substr(4));
             continue;
         }
+    }
+    if (verbosity_ > 0) {
+        std::cout << Utils::prompt(1) << "Scattering factors:";
+        for (auto s: sfacs_) {
+            std::cout << std::setw(4) << s;
+        }
+        std::cout << '\n';
     }
     return lattice_;
 }
@@ -171,6 +182,47 @@ int ResFile::addsfac(const std::string& sfacvalue) {
         ++newsfacs;
     }
     return newsfacs;
+}
+
+/**
+ * convert SFAC to Z; assumes that E starts with a sensible chemical name, 
+ * like Ca+ or O2-, followed by a non-letter
+ * @param sfac
+ * @return Z for this element
+ */
+unsigned int ResFile::sfac2Z(const std::string& sfac) const {
+    char E[3] = "00";
+    if (!isupper(sfac.at(0))) {
+        if (verbosity_ > 0) {
+            std::cout << Utils::error(1) 
+                    << "Illegal Sfac does not start with upper case character: " << sfac << "\n";
+            throw myExcepts::Format("SFAC card not upper case\n");
+        }
+    }
+    E[0] = sfac.at(0);
+    if (sfac.length() > 1 && islower(sfac.at(1))) {
+        E[1] = sfac.at(1);
+    }
+    // search for element in string
+    unsigned int Z = 0;
+    for (int z = 0; z < PSE::NUM_ELEMENTS; ++z) {
+        if (strcmp(E, PSE::Elements[z]) == 0) {
+            Z = z;
+            break;
+        }
+    }
+    if (Z == 0) {
+        if (verbosity_ > 0) {
+            std::cout << Utils::error(1) 
+                    << "Unknown element " << E << " in SFAC " << sfac << std::endl;
+            throw myExcepts::Format("SFAC card"+sfac);
+        }
+    }
+    if (verbosity_ > 1) {
+        std::cout << Utils::prompt(1) 
+                << "Z = " << Z << " extracted for sfac " << sfac << '\n';
+    }
+    return Z;
 }
 
 /**

@@ -70,6 +70,8 @@ public:
     std::vector<Vec3> coordinates() const { return atomcoordinates_; }
     std::vector<std::string> atomnames() const { return atomnames_; }
     std::vector<short> atomsfacs() const { return atomsfacs_; }
+    
+    unsigned int sfac2Z(const std::string& sfac) const;
 };
 
 #endif /* RESFILE_H */

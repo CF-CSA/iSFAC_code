@@ -108,6 +108,16 @@ std::string Utils::prompt(const unsigned short& verbosity) {
 
 }
 
+std::string Utils::error(const unsigned short& verbosity) {
+    std::string p("#");
+    for (int i = 0; i < verbosity; ++i) {
+        p += '*';
+    }
+    p += " Error: ";
+    return p;
+    
+}
+
 /**
  * 
  * @param a

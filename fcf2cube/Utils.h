@@ -41,6 +41,7 @@ namespace Utils {
     std::tuple<Vec3, Vec3, Vec3> unit_cell_vector (double a, double b, double c, double alpha, double beta, double gamma);
 
     std::string prompt(const unsigned short& verbosity);
+    std::string error(const unsigned short& verbosity);
 
 }
 
