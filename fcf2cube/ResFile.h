@@ -33,7 +33,10 @@ class ResFile {
 private:
     std::string filename_;
     std::vector<std::string> resfile_;
+    //! element names of SFAC cards
     std::vector<std::string> sfacs_;
+    //! atomic numbers of sfacs_
+    std::vector<int> sfacsZ_;
     std::vector<Vec3> atomcoordinates_;
     std::vector<std::string> atomnames_;
     std::vector<short> atomsfacs_;

@@ -12,6 +12,7 @@
       <itemPath>HKL.h</itemPath>
       <itemPath>HKLops.h</itemPath>
       <itemPath>Int3x3.h</itemPath>
+      <itemPath>MapValues.h</itemPath>
       <itemPath>Mat33.h</itemPath>
       <itemPath>Parser.h</itemPath>
       <itemPath>Reflex.h</itemPath>
@@ -19,6 +20,7 @@
       <itemPath>Usage.h</itemPath>
       <itemPath>Utils.h</itemPath>
       <itemPath>Vec3.h</itemPath>
+      <itemPath>defines.h</itemPath>
       <itemPath>myExceptions.h</itemPath>
       <itemPath>sxfft.h</itemPath>
     </logicalFolder>
@@ -37,6 +39,7 @@
       <itemPath>HKL.cpp</itemPath>
       <itemPath>HKLops.cpp</itemPath>
       <itemPath>Int3x3.cpp</itemPath>
+      <itemPath>MapValues.cpp</itemPath>
       <itemPath>Mat33.cpp</itemPath>
       <itemPath>Parser.cpp</itemPath>
       <itemPath>Reflex.cpp</itemPath>
@@ -109,6 +112,10 @@
       </item>
       <item path="Int3x3.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="MapValues.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="MapValues.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Mat33.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Mat33.h" ex="false" tool="3" flavor2="0">
@@ -136,6 +143,8 @@
       <item path="Vec3.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Vec3.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="defines.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -204,6 +213,10 @@
       </item>
       <item path="Int3x3.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="MapValues.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="MapValues.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Mat33.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Mat33.h" ex="false" tool="3" flavor2="0">
@@ -231,6 +244,8 @@
       <item path="Vec3.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Vec3.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="defines.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>

@@ -95,13 +95,17 @@ int ResFile::resinfo() {
             continue;
         }
     }
+
     if (verbosity_ > 0) {
         std::cout << Utils::prompt(1) << "Scattering factors:";
+        size_t idx(0);
         for (auto s: sfacs_) {
-            std::cout << std::setw(4) << s;
+            std::cout << std::setw(4) << s << " (Z= " << sfacsZ_[idx] << ")";
+            ++idx;
         }
         std::cout << '\n';
     }
+
     return lattice_;
 }
 
@@ -166,6 +170,8 @@ int ResFile::addsfac(const std::string& sfacvalue) {
     }
 
     sfacs_.push_back(sfac);
+    int Z = sfac2Z(sfac);
+    sfacsZ_.push_back(Z);
     ++newsfacs;
 
     float dummy;
@@ -179,6 +185,8 @@ int ResFile::addsfac(const std::string& sfacvalue) {
         }
 
         sfacs_.push_back(sfac);
+    int Z = sfac2Z(sfac);
+    sfacsZ_.push_back(Z);
         ++newsfacs;
     }
     return newsfacs;
@@ -202,6 +210,9 @@ unsigned int ResFile::sfac2Z(const std::string& sfac) const {
     E[0] = sfac.at(0);
     if (sfac.length() > 1 && islower(sfac.at(1))) {
         E[1] = sfac.at(1);
+    }
+    else { 
+        E[1] = '\0';
     }
     // search for element in string
     unsigned int Z = 0;

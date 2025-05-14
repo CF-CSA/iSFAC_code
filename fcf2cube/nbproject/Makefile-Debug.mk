@@ -43,6 +43,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/HKL.o \
 	${OBJECTDIR}/HKLops.o \
 	${OBJECTDIR}/Int3x3.o \
+	${OBJECTDIR}/MapValues.o \
 	${OBJECTDIR}/Mat33.o \
 	${OBJECTDIR}/Parser.o \
 	${OBJECTDIR}/Reflex.o \
@@ -117,6 +118,11 @@ ${OBJECTDIR}/Int3x3.o: Int3x3.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g `pkg-config --cflags kissfft-float` -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Int3x3.o Int3x3.cpp
+
+${OBJECTDIR}/MapValues.o: MapValues.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g `pkg-config --cflags kissfft-float` -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MapValues.o MapValues.cpp
 
 ${OBJECTDIR}/Mat33.o: Mat33.cpp
 	${MKDIR} -p ${OBJECTDIR}
