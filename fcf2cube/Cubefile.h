@@ -17,10 +17,12 @@
 #include "Atom.h"
 #include "Vec3.h"
 #include "myExceptions.h"
+#include "ResFile.h"
 
 #include <vector>
 #include <string>
 #include <array>
+#include <fstream>
 /**
  * Create a cube-file from SHELX project with
  * FCF file, RES file..
@@ -32,13 +34,17 @@ private:
     int Nx_, Ny_, Nz_;
     Vec3 origin_;
     Vec3 ex_, ey_, ez_;
+    std::ofstream outp_;
+    short verbosity_;
     
+    int cubeHeader(const ResFile& resfile);
     
 public:
-    Cubefile();
-    ~Cubefile() = default;
+    Cubefile() = delete;
+    Cubefile(const std::string& filename, const std::array<std::string, 2>& header, short verbosity);
+    ~Cubefile();
     
-    int writeCube(const std::string& filename, const std::array<std::string, 2>& header) const;
+    int writeCube(const ResFile& resfile, const std::array<int, 3>& grid, const std::array<Vec3, 3>& unitvecs) const;
 
 };
 

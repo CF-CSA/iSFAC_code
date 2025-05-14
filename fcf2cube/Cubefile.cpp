@@ -13,22 +13,57 @@
 
 #include "Cubefile.h"
 #include "Utils.h"
+#include "defines.h"
 
 #include <fstream>
 #include <iomanip>
 
-Cubefile::Cubefile() {
+Cubefile::Cubefile(const std::string& filename, const std::array<std::string, 2>& header, short verbosity):
+verbosity_(verbosity)
+{
+    outp_.open(filename);
+    if (! outp_.is_open()) {
+        if (verbosity_ > 0) {
+            std::cout << Utils::error(1) 
+                    << "Cannot open file " << filename << " for writing\n"
+                    << "    Please check permissions!\n";
+            throw myExcepts::FileIO("Cubefile " + filename);
+        }
+    }
+    outp_ << header.front() << '\n'
+            << header[1] << '\n';
 }
 
-int Cubefile::writeCube(const std::string& filename, const std::array<std::string,2>& header) const {
-    std::ofstream outp(filename);
-    if (!outp.is_open()) {
-        std::cout << Utils::prompt(1) << "Error opening file " << filename 
-                << std::endl;
-        throw myExcepts::FileIO("Writing "+filename);
+Cubefile::~Cubefile() {
+    if (outp_.is_open()) {
+        outp_.close();
     }
-    outp << header[1] << '\n'
-            << header[2] << '\n';
+}
+
+int Cubefile::writeCube(const ResFile& resfile, const std::array<int, 3>& grid, const std::array<Vec3, 3>& unitvecs) const {
+    const double s = 1.0/Physics::a0;
+    outp_ << std::setw(5) << resfile.num_atoms()
+            << std::setw(12) << std::setprecision(6) << s*resfile.orig().x()
+            << std::setw(12) << std::setprecision(6) << s*resfile.orig().y()
+            << std::setw(12) << std::setprecision(6) << s*resfile.orig().z()
+            << '\n';
+    outp_ << std::setw(5) << grid[0] 
+            << std::setw(12) << std::setprecision(6) << s*unitvecs[0].x()
+            << std::setw(12) << std::setprecision(6) << s*unitvecs[0].y()
+            << std::setw(12) << std::setprecision(6) << s*unitvecs[0].z()
+            << '\n';
+    outp_ << std::setw(5) << grid[1] 
+            << std::setw(12) << std::setprecision(6) << s*unitvecs[1].x()
+            << std::setw(12) << std::setprecision(6) << s*unitvecs[1].y()
+            << std::setw(12) << std::setprecision(6) << s*unitvecs[1].z()
+            << '\n';
+    outp_ << std::setw(5) << grid[2] 
+            << std::setw(12) << std::setprecision(6) << s*unitvecs[2].x()
+            << std::setw(12) << std::setprecision(6) << s*unitvecs[2].y()
+            << std::setw(12) << std::setprecision(6) << s*unitvecs[2].z()
+            << '\n';
+            
+            
     outp << std::setw(5) << atoms_.size()
             << std::setw(12) << std::setprecision(6) << origin_.x()
             << std::setw(12) << std::setprecision(6) << origin_.y()
