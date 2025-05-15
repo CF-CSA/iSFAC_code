@@ -22,25 +22,28 @@ private:
     std::vector<double> map_;
     const int gridx_, gridy_, gridz_;
     const double dx_, dy_, dz_;
-    
+
     int verbosity_;
-    
+
     //! ensure @c x is inside unit cell
     double in_unitcell(const double& x) const;
     Vec3 in_unitcell(const Vec3& x) const;
-    
+
     //! compute the index into map from grid coordinates
     int idx(int j, int k, int l) const;
-    
+
     //! calculate coordinates of lower bound grid point
     void gridpoint(const Vec3& xyz, int& j, int& k, int& l) const;
 public:
     MapValues(const std::vector<double>& map, int gridx, int gridy, int gridz, int verbosity);
     MapValues(const MapValues& orig) = default;
     ~MapValues() = default;
-    
+
     //! return interpolated value at position @c coords
-    double mapvalue (const Vec3& XYZ) const;
+    double mapvalue(const Vec3& XYZ) const;
+
+    //! make a map between llc and urc
+    std::vector<double> makemap(const Vec3& llc, const Vec3& urc, double& deltaX, double& deltaY, double& deltaZ) const;
 
 };
 

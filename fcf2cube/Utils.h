@@ -38,7 +38,7 @@ namespace Utils {
     template <typename T> std::pair<Vec3, Vec3> bbox3D(const std::vector<T> coords, const unsigned short& verbosity);
     
     //! compute unit cell vectors from parameters
-    std::tuple<Vec3, Vec3, Vec3> unit_cell_vector (double a, double b, double c, double alpha, double beta, double gamma);
+    std::tuple<Vec3, Vec3, Vec3> unit_cell_vectors (double a, double b, double c, double alpha, double beta, double gamma);
 
     std::string prompt(const unsigned short& verbosity);
     std::string error(const unsigned short& verbosity);

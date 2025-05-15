@@ -31,20 +31,34 @@
  */
 class ResFile {
 private:
+    struct XAtom {
+        std::string name_;
+        unsigned short sfac_idx_;
+        float x_, y_, z_;
+        float occupancy_;
+    } xatom;
+    struct SfacZ {
+        std::string element_;
+        unsigned short Z_;
+    } sfacz;
+    
+    //! original input file name
     std::string filename_;
+    
+    //! all lines of the resfile 
     std::vector<std::string> resfile_;
-    //! element names of SFAC cards
-    std::vector<std::string> sfacs_;
+    
     //! atomic numbers of sfacs_
-    std::vector<int> sfacsZ_;
-    std::vector<Vec3> atomcoordinates_;
-    std::vector<std::string> atomnames_;
-    std::vector<short> atomsfacs_;
+    std::vector<SfacZ> sfacsZ_;
+    std::vector<XAtom> xatoms_;
     
     float lambda_;
     float a_, b_, c_;
-    // angles are kept as angles here
+    // angles are kept as angles (degree) here
     float alpha_, beta_, gamma_;
+    
+    //! unit cell vectors
+    Vec3 A_, B_, C_;
     
     short lattice_;
     std::vector<std::string> symmcards_;
@@ -53,28 +67,34 @@ private:
     
     short verbosity_;
 
+    //! read in lines from res file
+    int readres();
+    //! process header / commands from res file
+    int resheader();
+    //! extract all fractional coordinats
+    int getxyzs();
+    
     int addsfac(const std::string& sfacvalue);
     bool is_xcmd(std::string& word) const;
     std::string upcase(const std::string& word) const;
+    // true if SFAC for this XAtom is a proper PSE element name
+    bool proper_PSE_element(const XAtom& xatom) const;
 
 public:
     ResFile(const std::string& filename, bool read_qs, short verbosity);
     ResFile(const ResFile& orig) = default;
     ~ResFile() = default;
 
-    //! read in lines from res file
-    int readres();
-    //! extract what we are interested in
-    int resinfo();
-    //! extract all fractional coordinats
-    int getxyzs();
-    
     std::string filename() const { return filename_; }
-    std::vector<Vec3> coordinates() const { return atomcoordinates_; }
-    std::vector<std::string> atomnames() const { return atomnames_; }
-    std::vector<short> atomsfacs() const { return atomsfacs_; }
     
     unsigned int sfac2Z(const std::string& sfac) const;
+    
+    //! compute a tight bounding box, converted to Angstroem, no margin added
+    std::pair<Vec3, Vec3> bbox() const;
+    
+    //! cube formatted string of atom coordinates
+    std::string atom_list_for_cube() const;
+
 };
 
 #endif /* RESFILE_H */

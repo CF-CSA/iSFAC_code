@@ -40,12 +40,23 @@ Cubefile::~Cubefile() {
     }
 }
 
-int Cubefile::writeCube(const ResFile& resfile, const std::array<int, 3>& grid, const std::array<Vec3, 3>& unitvecs) const {
+/**
+ * write information in Cube format. resfile includes information about coorainte system and
+ * the origin of its VdW volume bounding box. 
+ * @param resfile
+ * @param grid
+ * @param unitvecs
+ * @return 
+ */
+int Cubefile::writeCube(const ResFile& resfile, const std::array<int, 3>& grid, 
+        const std::array<Vec3, 3>& unitvecs, const std::vector<double> data) {
     const double s = 1.0/Physics::a0;
+    outp_ << resfile.atom_list_for_cube();
+    /*
     outp_ << std::setw(5) << resfile.num_atoms()
-            << std::setw(12) << std::setprecision(6) << s*resfile.orig().x()
-            << std::setw(12) << std::setprecision(6) << s*resfile.orig().y()
-            << std::setw(12) << std::setprecision(6) << s*resfile.orig().z()
+            << std::setw(12) << std::setprecision(6) << s*resfile.vdw_llc().x()
+            << std::setw(12) << std::setprecision(6) << s*resfile.vdw_llc().y()
+            << std::setw(12) << std::setprecision(6) << s*resfile.vdw_llc().z()
             << '\n';
     outp_ << std::setw(5) << grid[0] 
             << std::setw(12) << std::setprecision(6) << s*unitvecs[0].x()
@@ -62,34 +73,14 @@ int Cubefile::writeCube(const ResFile& resfile, const std::array<int, 3>& grid, 
             << std::setw(12) << std::setprecision(6) << s*unitvecs[2].y()
             << std::setw(12) << std::setprecision(6) << s*unitvecs[2].z()
             << '\n';
-            
-            
-    outp << std::setw(5) << atoms_.size()
-            << std::setw(12) << std::setprecision(6) << origin_.x()
-            << std::setw(12) << std::setprecision(6) << origin_.y()
-            << std::setw(12) << std::setprecision(6) << origin_.z()
-            << '\n';
-    outp << std::setw(5) << Nx_ 
-            << std::setw(12) << std::setprecision(6) << ex_.x()
-            << std::setw(12) << std::setprecision(6) << ex_.y()
-            << std::setw(12) << std::setprecision(6) << ex_.z()
-            << '\n';
-    outp << std::setw(5) << Ny_ 
-            << std::setw(12) << std::setprecision(6) << ey_.x()
-            << std::setw(12) << std::setprecision(6) << ey_.y()
-            << std::setw(12) << std::setprecision(6) << ey_.z()
-            << '\n';
-    outp << std::setw(5) << Nz_ 
-            << std::setw(12) << std::setprecision(6) << ez_.x()
-            << std::setw(12) << std::setprecision(6) << ez_.y()
-            << std::setw(12) << std::setprecision(6) << ez_.z()
-            << '\n';
-    for (auto a: atoms_) {
-        outp << std::setw(5) << a.Z()
-            << std::setw(12) << std::setprecision(6) << a.x()
-            << std::setw(12) << std::setprecision(6) << a.y()
-            << std::setw(12) << std::setprecision(6) << a.z()
-            << '\n';
+    
+    for (int i = 0; i < resfile.num_atoms(); ++i) {
+        outp_ << std::setw(5) << resfile.atomZ(i)
+                << std::setprecision(6) << 1.0*resfile.atomZ(i)
+                << std::setw(12) << std::setprecision(6) << resfile.atomxyz.x()
+                << std::setw(12) << std::setprecision(6) << resfile.atomxyz.y()
+                << std::setw(12) << std::setprecision(6) << resfile.atomxyz.z()
+                << '\n';
     }
     
     // write out the map, assumed to be in the correct order
@@ -97,12 +88,12 @@ int Cubefile::writeCube(const ResFile& resfile, const std::array<int, 3>& grid, 
     for (size_t idxy = 0; idxy < Nx_*Ny_; ++idxy) {
         for (size_t idz = 0; idz < Nz_; ++idz) {
             size_t index = idz + Nz_*idxy;
-            outp << std::setw(13) << std::setprecision(5) << map_[index];
+            outp_ << std::setw(13) << std::setprecision(5) << data[index];
             
         }
-        outp << '\n';
+        outp_ << '\n';
     }
- 
-    outp.close();
+    */
+    outp_.close();
     return  0;
 }

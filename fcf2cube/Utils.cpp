@@ -128,8 +128,8 @@ std::string Utils::error(const unsigned short& verbosity) {
  * @param gamma angle in degree
  * @return 
  */
-std::tuple<Vec3, Vec3, Vec3> Utils::unit_cell_vector(double a, double b, double c, double alpha, double beta, double gamma) {
-        const float salpha = std::sin(alpha * M_PI / 180.0);
+std::tuple<Vec3, Vec3, Vec3> Utils::unit_cell_vectors(double a, double b, double c, double alpha, double beta, double gamma) {
+    const float salpha = std::sin(alpha * M_PI / 180.0);
     const float calpha = std::cos(alpha * M_PI / 180.0);
     const float sbeta  = std::sin(beta  * M_PI / 180.0);
     const float cbeta  = std::cos(beta  * M_PI / 180.0);

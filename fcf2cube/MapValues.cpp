@@ -14,17 +14,19 @@
 #include <cmath>
 
 #include "MapValues.h"
+#include "Utils.h"
+#include "myExceptions.h"
 
 MapValues::MapValues(const std::vector<double>& map, int gridx, int gridy, int gridz, int verbosity) :
-map_(map), 
-        gridx_(gridx), gridy_(gridy), gridz_(gridz), 
-        dx_(1./gridx_), dy_(1./gridy_), dz_(1./gridz_), 
-        verbosity_(verbosity){
+map_(map),
+gridx_(gridx), gridy_(gridy), gridz_(gridz),
+dx_(1. / gridx_), dy_(1. / gridy_), dz_(1. / gridz_),
+verbosity_(verbosity) {
 
 }
 
 int MapValues::idx(int j, int k, int l) const {
-    int m = j + gridx_* (k+ gridy_*l);
+    int m = j + gridx_ * (k + gridy_ * l);
     return m;
 }
 
@@ -35,12 +37,11 @@ int MapValues::idx(int j, int k, int l) const {
  */
 double MapValues::in_unitcell(const double& x) const {
     float X = std::fmod(x, 1.0);
-    if (X<0) X+= 1.0;
+    if (X < 0) X += 1.0;
     return X;
 }
 
-Vec3 MapValues::in_unitcell(const Vec3& x) const 
-{
+Vec3 MapValues::in_unitcell(const Vec3& x) const {
     const double xu = in_unitcell(x.x());
     const double yu = in_unitcell(x.y());
     const double zu = in_unitcell(x.z());
@@ -55,7 +56,7 @@ Vec3 MapValues::in_unitcell(const Vec3& x) const
  * @param gy resulting y- index for grid point
  * @param gz resulting z- index for grid point
  */
-void MapValues::gridpoint(const Vec3& xyz, int& gx, int& gy, int& gz) const{
+void MapValues::gridpoint(const Vec3& xyz, int& gx, int& gy, int& gz) const {
     double x = in_unitcell(xyz.x());
     double y = in_unitcell(xyz.y());
     double z = in_unitcell(xyz.z());
@@ -63,6 +64,7 @@ void MapValues::gridpoint(const Vec3& xyz, int& gx, int& gy, int& gz) const{
     gy = int (gridy_ * y);
     gz = int (gridz_ * z);
 }
+
 /**
  * computes the value of the map at @c coord as distance-weighted 
  * average of the surrounding corner points around coord
@@ -85,41 +87,77 @@ double MapValues::mapvalue(const Vec3& XYZ) const {
     // get grid coordinate of a, lower bound for @c XYZ
     int gx, gy, gz;
     Vec3 ucXYZ = Vec3(in_unitcell(XYZ));
-    gridpoint (ucXYZ, gx, gy, gz);
+    gridpoint(ucXYZ, gx, gy, gz);
     // fractional distance from A (gx, gy, gz)
     const double dx = ucXYZ.x() - gx*dx_;
     const double dy = ucXYZ.y() - gy*dy_;
     const double dz = ucXYZ.z() - gz*dz_;
-    
+
     // there is most likely much room for optimisation here.
-    
+
     // indices and map values for corner points
-    const int idx_a = idx(gx+a[0], gy+a[1], gz+a[2]);
+    const int idx_a = idx(gx + a[0], gy + a[1], gz + a[2]);
     const double map_a = map_[idx_a];
-    const int idx_b = idx(gx+b[0], gy+b[1], gz+b[2]);
+    const int idx_b = idx(gx + b[0], gy + b[1], gz + b[2]);
     const double map_b = map_[idx_b];
-    const int idx_c = idx(gx+c[0], gy+c[1], gz+c[2]);
+    const int idx_c = idx(gx + c[0], gy + c[1], gz + c[2]);
     const double map_c = map_[idx_c];
-    const int idx_d = idx(gx+d[0], gy+d[1], gz+d[2]);
+    const int idx_d = idx(gx + d[0], gy + d[1], gz + d[2]);
     const double map_d = map_[idx_d];
-    const int idx_e = idx(gx+e[0], gy+e[1], gz+e[2]);
+    const int idx_e = idx(gx + e[0], gy + e[1], gz + e[2]);
     const double map_e = map_[idx_e];
-    const int idx_f = idx(gx+f[0], gy+f[1], gz+f[2]);
+    const int idx_f = idx(gx + f[0], gy + f[1], gz + f[2]);
     const double map_f = map_[idx_f];
-    const int idx_g = idx(gx+g[0], gy+g[1], gz+g[2]);
+    const int idx_g = idx(gx + g[0], gy + g[1], gz + g[2]);
     const double map_g = map_[idx_g];
-    const int idx_h = idx(gx+h[0], gy+h[1], gz+h[2]);
+    const int idx_h = idx(gx + h[0], gy + h[1], gz + h[2]);
     const double map_h = map_[idx_h];
-    
+
     const double map_p = map_a * (1 - dx) + map_b * dx;
     const double map_q = map_c * (1 - dx) + map_g * dx;
     const double map_r = map_d * (1 - dx) + map_f * dx;
     const double map_s = map_e * (1 - dx) + map_h * dx;
-    
+
     const double map_t = map_p * (1 - dy) + map_q * dy;
     const double map_u = map_r * (1 - dy) + map_s * dy;
-    
-    const double valxyz = map_t*(1 - dz) + map_u*dz;
-    
+
+    const double valxyz = map_t * (1 - dz) + map_u*dz;
+
     return valxyz;
+}
+
+std::vector<double> MapValues::makemap(const Vec3& llc, const Vec3& urc,
+        double& deltaX, double& deltaY, double& deltaZ) const {
+    deltaX = urc.x() - llc.x();
+    deltaY = urc.y() - llc.y();
+    deltaZ = urc.z() - llc.z();
+
+    if (deltaX <= 0.0 || deltaY <= 0.0 || deltaZ <= 0.0) {
+        if (verbosity_ > 0) {
+            std::cout << Utils::error(1) << "Error making map: upper corner is not a positive diagional\n";
+            throw myExcepts::Programming("make sure llc < urc in x,y,z");
+        }
+    }
+
+    deltaX = deltaX / gridx_;
+    deltaY = deltaY / gridy_;
+    deltaZ = deltaZ / gridz_;
+
+    std::vector<double> newmap(gridx_ * gridy_ * gridz_);
+
+    // cube maps: X is slow, Z is fast
+    for (size_t ix = 0; ix < gridx_; ++ix) {
+        const double x = llc.x() + ix*deltaX;
+        for (size_t iy = 0; iy < gridy_; ++iy) {
+            const double y = llc.y() + iy*deltaY;
+            for (size_t iz = 0; iz < gridz_; ++iz) {
+                const double z = llc.z() + iz*deltaZ;
+                Vec3 point(x, y, z);
+                double val = mapvalue(point);
+                newmap.push_back(val);
+            }
+        }
+    }
+    //#error deltaX etc must be returned, too, so that the map can be reconstituted.
+    return newmap;
 }

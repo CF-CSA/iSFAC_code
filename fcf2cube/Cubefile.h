@@ -44,7 +44,8 @@ public:
     Cubefile(const std::string& filename, const std::array<std::string, 2>& header, short verbosity);
     ~Cubefile();
     
-    int writeCube(const ResFile& resfile, const std::array<int, 3>& grid, const std::array<Vec3, 3>& unitvecs) const;
+    int writeCube(const ResFile& resfile, const std::array<int, 3>& grid, 
+        const std::array<Vec3, 3>& unitvecs, const std::vector<double> data);
 
 };
 

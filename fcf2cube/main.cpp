@@ -18,6 +18,7 @@
 #include "ResFile.h"
 #include "sxfft.h"
 #include "myExceptions.h"
+#include "MapValues.h"
 
 using namespace std;
 
@@ -31,6 +32,14 @@ int main(int argc, char** argv) {
         if (parser.verbosity() > 0) {
             hello(std::cout);
         }
+
+        // resfile defines the grid points for the map surrouding molecule
+        ResFile resfile(parser.resfile(), parser.read_qs(), parser.verbosity());
+        if (parser.verbosity() > 1) {
+            std::cout << resfile.atom_list_for_cube();
+        }
+
+        // read fcf file
         FCFfile fcffile(parser.fcffile(), parser.f000(), parser.verbosity());
         FCFInfo fcfinfo = fcffile.fcfinfo();
         std::vector<FCFitem> fcfdata = fcffile.fcfdata();
@@ -38,14 +47,13 @@ int main(int argc, char** argv) {
         if (parser.verbosity() > 0) {
             std::cout << "---> Converting FCF into Map by FFT\n";
         }
+        // compute fft
         sxfft myfft(fcfdata, fcfinfo, parser.maptype(), parser.verbosity());
         myfft.fft(parser.weight(), parser.hklgridres());
+        
+        // create the map for the Cubefile surrounding molecule
+        MapValues mapvals(myfft.map(), myfft.gridn1(), myfft.gridn2(), myfft.gridn3(), parser.verbosity());
 
-        // resfile defines the grid points for the map
-        ResFile resfile(parser.resfile(), parser.read_qs(), parser.verbosity());
-        resfile.readres();
-        resfile.resinfo();
-        int numxyz = resfile.getxyzs();
     }    catch (myExcepts::Usage e) {
         usage();
         return -1;

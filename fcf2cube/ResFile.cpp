@@ -26,6 +26,19 @@ filename_(filename),
 centrosymmetric_(false),
 read_qs_(read_qs),
 verbosity_(verbosity) {
+    // add empty sfac so that shelxl index numbers match
+    SfacZ s;
+    s.Z_ = 0;
+    s.element_ = "";
+    sfacsZ_.push_back(s);
+    // read res file
+    readres();
+    // process commands from header
+    resheader();
+    // extract atoms with sfac and coordinates
+    getxyzs();
+    // compute unit cell vectors
+    std::tie (A_, B_, C_) = Utils::unit_cell_vectors(a_, b_, c_, alpha_, beta_, gamma_);
 }
 
 /**
@@ -61,7 +74,7 @@ int ResFile::readres() {
  * symmetry cards
  * @return 
  */
-int ResFile::resinfo() {
+int ResFile::resheader() {
     for (auto it = resfile_.begin(); it != resfile_.end(); ++it) {
         if (it->empty()) continue;
         std::string key = it->substr(0, 4);
@@ -99,8 +112,8 @@ int ResFile::resinfo() {
     if (verbosity_ > 0) {
         std::cout << Utils::prompt(1) << "Scattering factors:";
         size_t idx(0);
-        for (auto s: sfacs_) {
-            std::cout << std::setw(4) << s << " (Z= " << sfacsZ_[idx] << ")";
+        for (auto s: sfacsZ_) {
+            std::cout << std::setw(4) << s.element_ << " (Z= " << s.Z_ << ")";
             ++idx;
         }
         std::cout << '\n';
@@ -169,9 +182,9 @@ int ResFile::addsfac(const std::string& sfacvalue) {
                 << '\n';
     }
 
-    sfacs_.push_back(sfac);
-    int Z = sfac2Z(sfac);
-    sfacsZ_.push_back(Z);
+    sfacz.element_ = sfac;
+    sfacz.Z_ = sfac2Z(sfac);
+    sfacsZ_.push_back(sfacz);
     ++newsfacs;
 
     float dummy;
@@ -184,10 +197,9 @@ int ResFile::addsfac(const std::string& sfacvalue) {
                     << '\n';
         }
 
-        sfacs_.push_back(sfac);
-    int Z = sfac2Z(sfac);
-    sfacsZ_.push_back(Z);
-        ++newsfacs;
+    sfacz.element_ = sfac;
+    sfacz.Z_ = sfac2Z(sfac);
+    sfacsZ_.push_back(sfacz);
     }
     return newsfacs;
 }
@@ -199,7 +211,7 @@ int ResFile::addsfac(const std::string& sfacvalue) {
  * @return Z for this element
  */
 unsigned int ResFile::sfac2Z(const std::string& sfac) const {
-    char E[3] = "00";
+    char E[3] = "0\0";
     if (!isupper(sfac.at(0))) {
         if (verbosity_ > 0) {
             std::cout << Utils::error(1) 
@@ -210,9 +222,6 @@ unsigned int ResFile::sfac2Z(const std::string& sfac) const {
     E[0] = sfac.at(0);
     if (sfac.length() > 1 && islower(sfac.at(1))) {
         E[1] = sfac.at(1);
-    }
-    else { 
-        E[1] = '\0';
     }
     // search for element in string
     unsigned int Z = 0;
@@ -237,36 +246,38 @@ unsigned int ResFile::sfac2Z(const std::string& sfac) const {
 }
 
 /**
- * extract all coordinates from RES file, 
+ * extract all coordinates from RES file, ignores continuation lines
  * @return 
  */
 int ResFile::getxyzs() {
     for (auto it = resfile_.begin(); it != resfile_.end(); ++it) {
         if (it->empty()) continue;
         std::string key = it->substr(0, 4);
-        if (key == "END" || key == "END " && !read_qs_) break; 
+        if ( (key == "END" || key == "END ") && !read_qs_) break; 
         if (is_xcmd(key)) continue;
         if (key.at(0) == ' ') continue;
+
         // these should be all options - this should be a atom line
-        short sfac;
-        double x, y, z;
+        unsigned short sfac;
+        float x, y, z;
+        float occupancy;
         std::istringstream conv(it->substr(4));
-        conv >> sfac >> x >> y >> z;
+        conv >> sfac >> x >> y >> z >> occupancy;
         if (conv.fail()) {
             std::cout << "---> Error: expected atom line but cannot extract coordinates from \n"
                     << "    \'" << conv.str() << "\'\n";
             throw myExcepts::Format("No SHELX atom line: " + conv.str());
         }
-        Vec3 xyz(x, y, z);
-        atomnames_.push_back(key);
-        atomsfacs_.push_back(sfac);
-        atomcoordinates_.push_back(xyz);
-        if (verbosity_ > 2) {
-            std::cout << "---> Coordinate " << key << ' ' << sfac << " ("
-                    << x << ", " << y << ", " << z << ")\n";
-        }
+        
+        xatom.name_ = key;
+        xatom.sfac_idx_ = sfac;
+        xatom.x_ = x;
+        xatom.y_ = y;
+        xatom.z_ = z;
+        xatom.occupancy_ = occupancy;
+        xatoms_.push_back(xatom);
     }
-    return atomcoordinates_.size();
+    return xatoms_.size();
 }
 
 std::string ResFile::upcase(const std::string& word) const {
@@ -275,4 +286,57 @@ std::string ResFile::upcase(const std::string& word) const {
         *it = std::toupper(*it);
     }
     return up;
+}
+
+/**
+ * Compute the bounding box of the coordinates (opposite corners)
+ * converted to Angstroem
+ * @return 
+ */
+std::pair<Vec3, Vec3> ResFile::bbox() const {
+    std::vector<Vec3> coords(xatoms_.size());
+    for (auto a: xatoms_) {
+        coords.push_back(Vec3(a.x_, a.y_, a.z_));
+    }
+    std::pair<Vec3, Vec3> bb = Utils::bbox3D(coords, verbosity_);
+    Vec3 llc = bb.first.x()*A_ + bb.first.y()*B_ + bb.first.z()*C_;
+    Vec3 urc = bb.second.x()*A_ + bb.second.y()*B_ + bb.second.z()*C_;
+    bb.first = llc;
+    bb.second = urc;
+    return bb;
+}
+
+bool ResFile::proper_PSE_element(const XAtom& xatom) const {
+   unsigned short Z = sfacsZ_[xatom.sfac_idx_].Z_;
+    std::string sfacname = sfacsZ_[xatom.sfac_idx_].element_;
+
+    if (PSE::Elements[Z] == sfacname) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+/**
+ * create a string of the proper elements in atom list
+ * in format suitable for CUBE file, with coordinates converted
+ * to Bohr from Angstroem
+ * @return 
+ */
+std::string ResFile::atom_list_for_cube() const{
+    std::ostringstream outp;
+    const double s = 1./Physics::a0;
+    for (auto a: xatoms_) {
+        if (proper_PSE_element(a)) {
+            unsigned short Z = sfacsZ_[a.sfac_idx_].Z_;
+            Vec3 x = a.x_*A_ + a.y_*B_ + a.z_*C_;
+            outp << std::setw(5) << Z
+                    << std::setw(12) << std::setprecision(6) << std::fixed << double(Z)
+                    << std::setw(12) << std::setprecision(6) << s*x.x()
+                    << std::setw(12) << std::setprecision(6) << s*x.y()
+                    << std::setw(12) << std::setprecision(6) << s*x.z()
+                    << '\n';
+        }
+    }
+    return outp.str();
 }
