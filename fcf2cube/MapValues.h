@@ -42,8 +42,11 @@ public:
     //! return interpolated value at position @c coords
     double mapvalue(const Vec3& XYZ) const;
 
-    //! make a map between llc and urc
-    std::vector<double> makemap(const Vec3& llc, const Vec3& urc, double& deltaX, double& deltaY, double& deltaZ) const;
+    int gridx() const { return gridx_; }
+    int gridy() const { return gridy_; }
+    int gridz() const { return gridz_; }
+
+
 
 };
 

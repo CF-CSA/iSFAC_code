@@ -27,6 +27,7 @@ cubefile_(""),
 f000_(std::nan("")),
         maptype_(1),
 read_qs_(false),
+        margin_(0.25),
 weight_weaks_(1.0),
 hklgridres_(5.0),
 verbosity_(1) {
@@ -48,6 +49,7 @@ verbosity_(1) {
         if (getoption(option, "-o", cubefile_, i, argc, argv)) continue;
         if (getoption(option, "-0", f000_, i, argc, argv)) continue;
         if (getoption(option, "-m", maptype_, i, argc, argv)) continue;
+        if (getoption(option, "-b", margin_, i, argc, argv)) continue;
         if (getoption(option, "-v", verbosity_, i, argc, argv)) continue;
 
         // when reaching this points, unknown option character

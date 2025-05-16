@@ -27,6 +27,8 @@ private:
     double f000_;
     short maptype_;
     bool read_qs_;
+    //! how much extra of molecule to cover
+    float margin_;
     float weight_weaks_;
     float hklgridres_;
     unsigned short verbosity_;
@@ -69,6 +71,10 @@ public:
 
     bool read_qs() const {
         return read_qs_;
+    }
+
+    float margin() const {
+        return margin_;
     }
 
     float weight() const {

@@ -27,6 +27,7 @@ void usage() {
 	      << "!        -r file   : read RES file                              !\n"
               << "!        -o file   : write Cube map to file                     !\n"
               << "!        -0 num    : set F(000) to num                          !\n" 
+              << "!        -b num    : expand margin around molecule [0.05]              !\n"
               << "!        -v num : set verbosity to num                          !\n"
               << "!        -h / -?: print this help message and exit              !\n"
               << "!---------------------------------------------------------------!\n"

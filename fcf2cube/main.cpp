@@ -19,6 +19,8 @@
 #include "sxfft.h"
 #include "myExceptions.h"
 #include "MapValues.h"
+#include "Utils.h"
+#include "Cubefile.h"
 
 using namespace std;
 
@@ -36,7 +38,9 @@ int main(int argc, char** argv) {
         // resfile defines the grid points for the map surrouding molecule
         ResFile resfile(parser.resfile(), parser.read_qs(), parser.verbosity());
         if (parser.verbosity() > 1) {
-            std::cout << resfile.atom_list_for_cube();
+            int numAtoms;
+            std::cout << Utils::prompt(2) <<resfile.atom_list_for_cube(numAtoms);
+            std::cout << Utils::prompt(2) << "Number of atoms: " << numAtoms << '\n';
         }
 
         // read fcf file
@@ -53,6 +57,19 @@ int main(int argc, char** argv) {
         
         // create the map for the Cubefile surrounding molecule
         MapValues mapvals(myfft.map(), myfft.gridn1(), myfft.gridn2(), myfft.gridn3(), parser.verbosity());
+        
+        // setup Cube file
+        if (parser.verbosity() > 1) {
+            std::cout << Utils::prompt(2) << "Setting up cubefile with an extend factor of "
+                    << parser.margin() << " around molecule\n";
+        }
+        Cubefile cubefile (resfile, mapvals, parser.margin(), parser.verbosity());
+        std::array<std::string, 2> cubeheader;
+        std::string h1 ("Cube file generated from "+parser.fcffile()+" and "+parser.resfile());
+        cubeheader[0] = h1;
+        h1 = Utils::timestamp();
+        cubeheader[1] = h1;
+        cubefile.writeCube(parser.cubefile(), cubeheader);
 
     }    catch (myExcepts::Usage e) {
         usage();

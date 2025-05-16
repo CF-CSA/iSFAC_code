@@ -42,6 +42,9 @@ namespace Utils {
 
     std::string prompt(const unsigned short& verbosity);
     std::string error(const unsigned short& verbosity);
+    
+    //! timestamp string at time of execution
+    std::string timestamp();
 
 }
 

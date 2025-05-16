@@ -12,6 +12,7 @@
  */
 
 #include "FCFInfo.h"
+#include "Utils.h"
 #include <cmath>
 #include <complex>
 
@@ -29,9 +30,9 @@ a_ (a), b_(b), c_(c), alpha_(alpha), beta_(beta), gamma_(gamma), dhighres_(dhigh
 bool FCFInfo::check_inversion() const{
     bool c = false;
     for (auto it = symops_.begin(); it != symops_.end(); ++it) {
-        if (verbosity_ > 1) {
+        if (verbosity_ > 2) {
             float det = it->det();
-            std::cout << "---> Checking Determinant for \n" << (*it) 
+            std::cout << Utils::prompt(2) << "Checking Determinant for \n" << (*it) 
                     << "---> Det(R) = " << det << "\n\n";
         }
         if (it->det() == -1) {
@@ -74,8 +75,8 @@ std::vector<Int3x3> FCFInfo::symops_no_inv() const {
             
     }
     if (verbosity_ > 1) {
-        std::cout << "---> Elimination of symmetry and inversion operators results in "
-                << "    " << symops_noinv.size() << " rotational operators\n";
+        std::cout << "---> Elimination of symmetry and inversion operators \n"
+                << "       results in "  << "    " << symops_noinv.size() << " rotational operators\n";
     }
     return symops_noinv;
     

@@ -18,6 +18,7 @@
 #include "Vec3.h"
 #include "myExceptions.h"
 #include "ResFile.h"
+#include "MapValues.h"
 
 #include <vector>
 #include <string>
@@ -31,21 +32,25 @@ class Cubefile {
 private:
     std::vector<Atom> atoms_;
     std::vector<double> map_;
+    ResFile resfile_;
+    MapValues mapvals_;
     int Nx_, Ny_, Nz_;
-    Vec3 origin_;
+    //! lower left corner of box is origin of map
+    Vec3 llc_, urc_;
     Vec3 ex_, ey_, ez_;
-    std::ofstream outp_;
+    float margin_;
     short verbosity_;
     
-    int cubeHeader(const ResFile& resfile);
+    void makemap();
     
 public:
     Cubefile() = delete;
-    Cubefile(const std::string& filename, const std::array<std::string, 2>& header, short verbosity);
-    ~Cubefile();
+    Cubefile(const ResFile& resfile, const MapValues& mapvals, float margin, short verbosity);
+    ~Cubefile() = default;
     
-    int writeCube(const ResFile& resfile, const std::array<int, 3>& grid, 
-        const std::array<Vec3, 3>& unitvecs, const std::vector<double> data);
+    //! write info to cube file, including two header lines
+    int writeCube(const std::string filename, 
+        const std::array<std::string, 2>& header) const;
 
 };
 

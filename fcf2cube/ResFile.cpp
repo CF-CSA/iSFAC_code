@@ -293,16 +293,25 @@ std::string ResFile::upcase(const std::string& word) const {
  * converted to Angstroem
  * @return 
  */
-std::pair<Vec3, Vec3> ResFile::bbox() const {
-    std::vector<Vec3> coords(xatoms_.size());
+std::pair<Vec3, Vec3> ResFile::bbox_frac() const {
+    std::vector<Vec3> coords;
     for (auto a: xatoms_) {
         coords.push_back(Vec3(a.x_, a.y_, a.z_));
     }
     std::pair<Vec3, Vec3> bb = Utils::bbox3D(coords, verbosity_);
-    Vec3 llc = bb.first.x()*A_ + bb.first.y()*B_ + bb.first.z()*C_;
-    Vec3 urc = bb.second.x()*A_ + bb.second.y()*B_ + bb.second.z()*C_;
-    bb.first = llc;
-    bb.second = urc;
+    if (verbosity_ > 2) {
+        std::cout << Utils::prompt(2) << "Bounding box determined in A:\n"
+                << bb.first.x()*A_ + bb.first.y()*B_ + bb.first.z()*C_
+                << " " 
+                << bb.second.x()*A_ + bb.second.y()*B_ + bb.second.z()*C_
+                << std::endl;
+        const double s = 1./Physics::a0;
+        std::cout << Utils::prompt(2) << "Bounding box determined in Bohr:\n"
+                << s*bb.first.x()*A_ + s*bb.first.y()*B_ + s*bb.first.z()*C_
+                << " " 
+                << s*bb.second.x()*A_ + s*bb.second.y()*B_ + s*bb.second.z()*C_
+                << std::endl;
+    }
     return bb;
 }
 
@@ -323,8 +332,9 @@ bool ResFile::proper_PSE_element(const XAtom& xatom) const {
  * to Bohr from Angstroem
  * @return 
  */
-std::string ResFile::atom_list_for_cube() const{
+std::string ResFile::atom_list_for_cube(int& num_atoms) const{
     std::ostringstream outp;
+    num_atoms = 0;
     const double s = 1./Physics::a0;
     for (auto a: xatoms_) {
         if (proper_PSE_element(a)) {
@@ -336,6 +346,7 @@ std::string ResFile::atom_list_for_cube() const{
                     << std::setw(12) << std::setprecision(6) << s*x.y()
                     << std::setw(12) << std::setprecision(6) << s*x.z()
                     << '\n';
+		++num_atoms;
         }
     }
     return outp.str();

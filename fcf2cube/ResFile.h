@@ -85,15 +85,22 @@ public:
     ResFile(const ResFile& orig) = default;
     ~ResFile() = default;
 
+    //! get input filename
     std::string filename() const { return filename_; }
     
+    //! convert the element part of SFAC to PSE Z number
     unsigned int sfac2Z(const std::string& sfac) const;
+
+    //! getters
+    Vec3 A() const { return A_; }
+    Vec3 B() const { return B_; }
+    Vec3 C() const { return C_; }
     
     //! compute a tight bounding box, converted to Angstroem, no margin added
-    std::pair<Vec3, Vec3> bbox() const;
+    std::pair<Vec3, Vec3> bbox_frac() const;
     
     //! cube formatted string of atom coordinates
-    std::string atom_list_for_cube() const;
+    std::string atom_list_for_cube(int& num_atoms) const;
 
 };
 

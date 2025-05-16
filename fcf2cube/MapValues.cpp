@@ -125,39 +125,3 @@ double MapValues::mapvalue(const Vec3& XYZ) const {
 
     return valxyz;
 }
-
-std::vector<double> MapValues::makemap(const Vec3& llc, const Vec3& urc,
-        double& deltaX, double& deltaY, double& deltaZ) const {
-    deltaX = urc.x() - llc.x();
-    deltaY = urc.y() - llc.y();
-    deltaZ = urc.z() - llc.z();
-
-    if (deltaX <= 0.0 || deltaY <= 0.0 || deltaZ <= 0.0) {
-        if (verbosity_ > 0) {
-            std::cout << Utils::error(1) << "Error making map: upper corner is not a positive diagional\n";
-            throw myExcepts::Programming("make sure llc < urc in x,y,z");
-        }
-    }
-
-    deltaX = deltaX / gridx_;
-    deltaY = deltaY / gridy_;
-    deltaZ = deltaZ / gridz_;
-
-    std::vector<double> newmap(gridx_ * gridy_ * gridz_);
-
-    // cube maps: X is slow, Z is fast
-    for (size_t ix = 0; ix < gridx_; ++ix) {
-        const double x = llc.x() + ix*deltaX;
-        for (size_t iy = 0; iy < gridy_; ++iy) {
-            const double y = llc.y() + iy*deltaY;
-            for (size_t iz = 0; iz < gridz_; ++iz) {
-                const double z = llc.z() + iz*deltaZ;
-                Vec3 point(x, y, z);
-                double val = mapvalue(point);
-                newmap.push_back(val);
-            }
-        }
-    }
-    //#error deltaX etc must be returned, too, so that the map can be reconstituted.
-    return newmap;
-}

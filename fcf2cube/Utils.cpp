@@ -12,6 +12,7 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_statistics_double.h>
 
+
 /**
  * algorithm to create a volume grid at vdW radii of atoms, with a grid spacing 
  * og @c gridspacing (in Angstrom)
@@ -142,4 +143,17 @@ std::tuple<Vec3, Vec3, Vec3> Utils::unit_cell_vectors(double a, double b, double
     double cz = std::sqrt(c * c - cx * cx - cy * cy);
     Vec3 C = Vec3(cx, cy, cz);
     return std::tuple<Vec3, Vec3, Vec3>(A, B, C);
+}
+
+/**
+ * Return a string containing the current date and time - 'ctime' reformatted
+ * with the last carriage return removed
+ */
+std::string Utils::timestamp()
+{
+        std::time_t seconds = time(NULL);
+        std::string now (std::ctime(&seconds));
+        now.erase(now.end()-1);
+
+        return now;
 }
