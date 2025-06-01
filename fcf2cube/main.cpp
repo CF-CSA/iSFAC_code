@@ -70,6 +70,11 @@ int main(int argc, char** argv) {
         h1 = Utils::timestamp();
         cubeheader[1] = h1;
         cubefile.writeCube(parser.cubefile(), cubeheader);
+        
+        if (parser.verbosity() > 1) {
+            std::cout << Utils::prompt(parser.verbosity()) << "Map statistics:\n";
+            cubefile.printState();
+        }
 
     }    catch (myExcepts::Usage e) {
         usage();

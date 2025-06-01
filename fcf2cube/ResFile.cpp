@@ -299,6 +299,7 @@ std::pair<Vec3, Vec3> ResFile::bbox_frac() const {
         coords.push_back(Vec3(a.x_, a.y_, a.z_));
     }
     std::pair<Vec3, Vec3> bb = Utils::bbox3D(coords, verbosity_);
+    
     if (verbosity_ > 2) {
         std::cout << Utils::prompt(2) << "Bounding box determined in A:\n"
                 << bb.first.x()*A_ + bb.first.y()*B_ + bb.first.z()*C_

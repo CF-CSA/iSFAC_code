@@ -18,6 +18,10 @@
 #include <fstream>
 #include <iomanip>
 #include <complex>
+#include <algorithm>
+#include <numeric>
+#include <limits>
+#include <gsl/gsl_statistics_double.h>
 
 /**
  * Initiates ex, ey, ez with unit cell vectors. Need to be multiplied with 
@@ -175,4 +179,21 @@ void Cubefile::makemap() {
     ex_ = deltaX*ex_;
     ey_ = deltaY*ey_;
     ez_ = deltaZ*ez_;
+}
+
+void Cubefile::printState() const {
+    std::vector<double> map(map_);
+    std::sort(map.begin(),map.end());
+    double sum = std::accumulate(map.begin(), map.end(), 0.0);
+    const double mu = sum/map.size();
+    double var(0.0);
+    for (auto x: map) {
+        var += (x-mu)*(x-mu);
+    }
+    var = var/map.size();
+    
+    std::cout << Utils::prompt(verbosity_) << " mu  = " << mu << '\n'
+            << Utils::prompt(verbosity_)   << " sd  = " << std::sqrt(var) << '\n'
+            << Utils::prompt(verbosity_)   << " min = " << map.front() << '\n'
+            << Utils::prompt(verbosity_)   << " max = " << map.back() << '\n';
 }

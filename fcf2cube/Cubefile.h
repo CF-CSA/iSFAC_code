@@ -51,6 +51,8 @@ public:
     //! write info to cube file, including two header lines
     int writeCube(const std::string filename, 
         const std::array<std::string, 2>& header) const;
+    // print statistics for map array
+    void printState() const;
 
 };
 
