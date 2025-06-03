@@ -64,7 +64,15 @@ void Cube::readMap(const std::string& fname) {
         std::getline(inp, h2_);
         double x, y, z;
         double orgx, orgy, orgz;
-        inp >> numAtoms_ >> orgx >> orgy >> orgz;
+	int dim;
+	std::string natomline;
+	// next line may or may not contain dimension per point
+	std::getline(inp, natomline);
+	std::istringstream conv (natomline);
+	conv >> numAtoms_ >> orgx >> orgy >> orgz >> dim;
+	if (conv.fail()) dim = 1;
+
+        // inp >> numAtoms_ >> orgx >> orgy >> orgz;
 
         inp >> Vx_ >> x >> y >> z;
         ex_ = Vec3(x, y, z);
