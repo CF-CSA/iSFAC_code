@@ -65,6 +65,10 @@ verbosity_(verbosity) {
 
 }
 
+void Cubefile::prepAtomlist() {
+    resfile_.skip_close_atoms();
+}
+
 /**
  * write information in Cube format. resfile includes information about coorainte system and
  * the origin of its VdW volume bounding box. 
@@ -105,7 +109,7 @@ int Cubefile::writeCube(const std::string filename,
             << std::setw(12) << std::setprecision(6) << std::fixed << s * origin.x()
             << std::setw(12) << std::setprecision(6) << std::fixed << s * origin.y()
             << std::setw(12) << std::setprecision(6) << std::fixed << s * origin.z()
-            << '\n';
+            << " 1\n";
 
     outp_ << std::setw(5) << Nx_
             << std::setw(12) << std::setprecision(6) << s * ex_.x()
@@ -130,7 +134,7 @@ int Cubefile::writeCube(const std::string filename,
     for (size_t idxy = 0; idxy < Nx_ * Ny_; ++idxy) {
         for (size_t idz = 0; idz < Nz_; ++idz) {
             size_t index = idz + Nz_*idxy;
-            outp_ << std::setw(13) << std::setprecision(5) << map_[index];
+            outp_ << std::scientific << std::setw(13) << std::setprecision(5) << map_[index];
 
         }
         outp_ << '\n';

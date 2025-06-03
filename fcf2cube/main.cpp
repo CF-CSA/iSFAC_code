@@ -69,6 +69,7 @@ int main(int argc, char** argv) {
         cubeheader[0] = h1;
         h1 = Utils::timestamp();
         cubeheader[1] = h1;
+        cubefile.prepAtomlist();
         cubefile.writeCube(parser.cubefile(), cubeheader);
         
         if (parser.verbosity() > 1) {

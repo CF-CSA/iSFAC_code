@@ -32,10 +32,11 @@
 class ResFile {
 private:
     struct XAtom {
-        std::string name_;
-        unsigned short sfac_idx_;
+        std::string name_ = "";
+        unsigned short sfac_idx_ = 0;
         float x_, y_, z_;
         float occupancy_;
+        bool skip_ = false;
     } xatom;
     struct SfacZ {
         std::string element_;
@@ -98,6 +99,9 @@ public:
     
     //! compute a tight bounding box, converted to Angstroem, no margin added
     std::pair<Vec3, Vec3> bbox_frac() const;
+    
+    //! mark atom pairs too close to one another to skip
+    void skip_close_atoms();
     
     //! cube formatted string of atom coordinates
     std::string atom_list_for_cube(int& num_atoms) const;

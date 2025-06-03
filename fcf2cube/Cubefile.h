@@ -48,6 +48,8 @@ public:
     Cubefile(const ResFile& resfile, const MapValues& mapvals, float margin, short verbosity);
     ~Cubefile() = default;
     
+    //! mark too close atoms to be skipped
+    void prepAtomlist();
     //! write info to cube file, including two header lines
     int writeCube(const std::string filename, 
         const std::array<std::string, 2>& header) const;

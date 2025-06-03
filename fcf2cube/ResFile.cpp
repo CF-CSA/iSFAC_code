@@ -327,6 +327,30 @@ bool ResFile::proper_PSE_element(const XAtom& xatom) const {
         return false;
     }
 }
+
+/**
+ * make atoms closer than 0.5A to a previous one as skipped atom
+ * @return 
+ */
+void ResFile::skip_close_atoms() {
+    // mark all atoms closer than 0.5A is too close and do not include in list
+    for (std::vector<XAtom>::iterator it = xatoms_.begin();
+            it != xatoms_.end()-1; ++it) {
+        if (it->skip_) {
+            continue;
+        }
+        for (std::vector<XAtom>::iterator it2 = it+1; it2 != xatoms_.end(); ++it2) {
+            const Vec3 delta = (it2->x_ - it->x_)*A_ 
+                                + (it2->y_ - it->y_)*B_ 
+                                + (it2->z_ - it->z_)*C_;
+            const double d2 = delta*delta;
+            if (d2 < 0.5*0.5) {
+                it->skip_ = true;
+            }
+        }
+    }
+    
+}
 /**
  * create a string of the proper elements in atom list
  * in format suitable for CUBE file, with coordinates converted
@@ -335,9 +359,10 @@ bool ResFile::proper_PSE_element(const XAtom& xatom) const {
  */
 std::string ResFile::atom_list_for_cube(int& num_atoms) const{
     std::ostringstream outp;
-    num_atoms = 0;
     const double s = 1./Physics::a0;
+    num_atoms = 0;
     for (auto a: xatoms_) {
+        if (a.skip_ == true) continue;
         if (proper_PSE_element(a)) {
             unsigned short Z = sfacsZ_[a.sfac_idx_].Z_;
             Vec3 x = a.x_*A_ + a.y_*B_ + a.z_*C_;
