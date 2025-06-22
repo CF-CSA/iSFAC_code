@@ -27,7 +27,7 @@ cubefile_(""),
 f000_(std::nan("")),
 maptype_(1),
 read_qs_(false),
-margin_(0.25),
+margin_(0.35),
 weight_weaks_(1.0),
 hklgridres_(5.0),
 verbosity_(1) {
