@@ -48,6 +48,7 @@ verbosity_(1) {
         if (getoption(option, "-r", resfile_, i, argc, argv)) continue;
         if (getoption(option, "-o", cubefile_, i, argc, argv)) continue;
         if (getoption(option, "-0", f000_, i, argc, argv)) continue;
+        if (getoption(option, "-g", hklgridres_, i, argc, argv)) continue;
         if (getoption(option, "-m", maptype_, i, argc, argv)) continue;
         if (getoption(option, "-b", margin_, i, argc, argv)) continue;
         if (getoption(option, "-v", verbosity_, i, argc, argv)) continue;

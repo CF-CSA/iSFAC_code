@@ -27,6 +27,7 @@ void usage() {
 	      << "!        -r file   : read RES file                              !\n"
               << "!        -o file   : write Cube map to file                     !\n"
               << "!        -0 num    : set F(000) to num                          !\n" 
+              << "!        -g grid   : adjust grid sampling (higher for finer) [5.0]!\n"
               << "!        -b num    : expand margin around molecule [0.35]       !\n"
 	      << "!                    (add fraction to space diagonal)           !\n"
               << "!        -v num : set verbosity to num                          !\n"
