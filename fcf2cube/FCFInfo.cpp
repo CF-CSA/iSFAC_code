@@ -83,7 +83,8 @@ std::vector<Int3x3> FCFInfo::symops_no_inv() const {
 }
 
 /**
- * this factor is used during FFT in sxfft.f as C(15); not sure of its meaning
+ * this factor is used during FFT in sxfft.f as C(15); v scales the cell volume 
+ * for non-orthorhombic cells, hence C(15) is the cell volume.
  * @return 
  */
 float FCFInfo::fftscale() const {  

@@ -108,9 +108,9 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
     const int n5 = grid_n3_*n4;
 
     // define the grid of the map
-    const float DX = 1.0 / grid_n1_;
-    const float DY = 1.0 / grid_n2_;
-    const float DZ = 1.0 / grid_n3_;
+    const double DX = 1.0 / grid_n1_;
+    const double DY = 1.0 / grid_n2_;
+    const double DZ = 1.0 / grid_n3_;
 
     if (verbosity_ > 1) {
         std::cout << "---> grid steps in x, y, z:"
@@ -135,13 +135,13 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
         B[i].i = 0;
     }
     // Set up data in B (complex Hermitian) for FFT with KISSFFT
-    float c15 = fcfinfo_.fftscale();
+    const double c15 = fcfinfo_.fftscale();
     for (int i = 0; i < fcfdata_.size(); i++) {
-        float u, v, w;
+        double u, v, w;
         u = fcfdata_[i].hkl().h();
         v = fcfdata_[i].hkl().k();
         w = fcfdata_[i].hkl().l();
-        float s = 0, t = 0, q, p;
+        double s = 0, t = 0, q, p;
         // count number of symmetry equivalents
         for (auto sym = symops_.begin(); sym != symops_.end(); ++sym) {
 
@@ -322,7 +322,7 @@ void sxfft::standard_hkl() {
 }
 
 int sxfft::magicTop(int j) const {
-    std::vector<int>::const_iterator it;
+    std::array<int, 143>::const_iterator it;
     for (it = magicFC_.begin(); it < magicFC_.end() && *it < j; ++it) {
     }
 

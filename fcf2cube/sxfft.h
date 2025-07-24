@@ -17,6 +17,7 @@
 #include "FCFitem.h"
 #include "FCFInfo.h"
 
+#include <array>
 
 /**
  * Fast Fourier Transform for FCF data; derived from original sxfft.h as well as  ShelXle 
@@ -26,7 +27,7 @@ class sxfft {
     FCFInfo fcfinfo_;
     std::vector<FCFitem> fcfdata_;
     // 143 fixed entries for fast FFT grids
-    const std::vector<int> magicFC_; 
+    const std::array<int, 143> magicFC_; 
 
     // storage for map
     std::vector<double> map_;
