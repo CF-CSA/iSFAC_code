@@ -34,8 +34,8 @@ private:
     struct XAtom {
         std::string name_ = "";
         unsigned short sfac_idx_ = 0;
-        float x_, y_, z_;
-        float occupancy_;
+        double x_, y_, z_;
+        double occupancy_;
         bool skip_ = false;
     } xatom;
     struct SfacZ {
@@ -53,10 +53,10 @@ private:
     std::vector<SfacZ> sfacsZ_;
     std::vector<XAtom> xatoms_;
     
-    float lambda_;
-    float a_, b_, c_;
+    double lambda_;
+    double a_, b_, c_;
     // angles are kept as angles (degree) here
-    float alpha_, beta_, gamma_;
+    double alpha_, beta_, gamma_;
     
     //! unit cell vectors
     Vec3 A_, B_, C_;

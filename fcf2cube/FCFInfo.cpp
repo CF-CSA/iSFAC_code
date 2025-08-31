@@ -16,70 +16,70 @@
 #include <cmath>
 #include <complex>
 
-FCFInfo::FCFInfo(float a, float b, float c, float alpha, float beta, float gamma, float dhighres, float F000, const std::vector<Int3x3> symops, int verbosity):
-a_ (a), b_(b), c_(c), alpha_(alpha), beta_(beta), gamma_(gamma), dhighres_(dhighres), F000_(F000), symops_(symops), verbosity_(verbosity)
+FCFInfo::FCFInfo(double a, double b, double c, double alpha, double beta, double gamma, double dhighres, double F000, const std::vector<Int3x3> symops, int verbosity):
+a_ (a), b_(b), c_(c), alpha_(alpha), beta_(beta), gamma_(gamma), dhighres_(dhighres), F000_(F000), 
+        centrosymmetric_ (false),
+        symops_(symops), 
+        verbosity_(verbosity)
 {
-    centrosymmetric_ = check_inversion();
-}
 
-/**
- * the space group has a centre of inversion, if any of the rotation matrices has 
- * a negative determinant
- * @return 
- */
-bool FCFInfo::check_inversion() const{
-    bool c = false;
-    for (auto it = symops_.begin(); it != symops_.end(); ++it) {
-        if (verbosity_ > 2) {
-            float det = it->det();
-            std::cout << Utils::prompt(2) << "Checking Determinant for \n" << (*it) 
-                    << "---> Det(R) = " << det << "\n\n";
-        }
-        if (it->det() == -1) {
-            c = true;
-            continue;
-        }
-        if (it->det() != 1) {
-            std::cout << "*** Error: Determinant of rotation matrix " << *it 
-                    << " != +/-1" << std::endl;
-            throw std::logic_error("Error: Determinan of symmetry matrix must be +/-1");
-        }
-    }
-    return c;
 }
 
 /**
  * Following sxfft.f, eliminate lattice and inversion operators
  * @return 
  */
-std::vector<Int3x3> FCFInfo::symops_no_inv() const {
-    
-    std::vector<Int3x3> symops_noinv (symops_);
+std::vector<Int3x3> FCFInfo::symops_no_inv() {
+    std::vector<Int3x3> symops_noinv(symops_);
     for (auto it1 = symops_noinv.begin(); it1 != symops_noinv.end(); ++it1) {
-        for (auto it2 = it1+1; it2 != symops_noinv.end(); ++it2){
-            int u(0), v(0);
+        for (auto it2 = it1 + 1; it2 != symops_noinv.end(); ++it2) {
+            double u(0), v(0);
             // pairwise sum and difference of matrix entries
             for (int r = 0; r < 3; ++r) {
                 for (int c = 0; c < 3; ++c) {
-                    u += std::abs((*it2)(r, c) - (*it1)(r,c));
-                    v += std::abs((*it2)(r, c) + (*it1)(r,c));
+                    // u checks for lattice parameter, U=U' for rotational part
+                    u += std::abs((*it2)(r, c) - (*it1)(r, c));
+                    // V checks whether it2 has an equivalent V-V'=0
+                    v += std::abs((*it2)(r, c) + (*it1)(r, c));
                 }
             }
-            if (u != v) continue; // next it2
+            // if neither u nor v is zero, it2 has no inversion element, nor is
+            //  a pure lattice part
+            if (std::min(u, v) > 0.01) continue; // next it2
+                // both u and v greater than 0
+                // sxfft.f sets NC here in case of centrosymmetric space groups,
+                // this program does the separately with the function
+                // centrosymmetric().
             else {
                 // eliminate it2 by overwriting it with the last one
+                if (verbosity_ > 2) {
+                    std::cout << "---> debug: size of symmop vector: "
+                            << symops_noinv.size() << '\n'
+                            << " u = " << u << '\n'
+                            << " v = " << v << '\n'
+                            << *it1 << '\n'
+                            << *it2 << std::endl;
+
+                }
+                // do not store it2, replace it with the last entry
                 *it2 = symops_noinv.back();
+                if (v < 0.01) {
+                    centrosymmetric_ = true;
+                }
                 symops_noinv.pop_back();
+                // repeat search for the back_operator
+                --it2;
+                continue;
             }
         }
-            
+
     }
     if (verbosity_ > 1) {
         std::cout << "---> Elimination of symmetry and inversion operators \n"
-                << "       results in "  << "    " << symops_noinv.size() << " rotational operators\n";
+                << "       results in " << "    " << symops_noinv.size() << " rotational operators\n";
     }
     return symops_noinv;
-    
+
 }
 
 /**
@@ -87,16 +87,20 @@ std::vector<Int3x3> FCFInfo::symops_no_inv() const {
  * for non-orthorhombic cells, hence C(15) is the cell volume.
  * @return 
  */
-float FCFInfo::fftscale() const {  
-    const float cdalpha = std::cos(M_PI / 180.0 * alpha_);
-    const float cdbeta  = std::cos(M_PI / 180.0 * beta_);
-    const float cdgamma = std::cos(M_PI / 180.0 * gamma_);
+double FCFInfo::fftscale() const {  
+    // D1-3 contains sin; D4-6 is cos
+    // sxfft.f computes C(7-12), but these do not seem to be used
+    const double calpha = std::cos(M_PI / 180.0 * alpha_);
+    const double cbeta  = std::cos(M_PI / 180.0 * beta_);
+    const double cgamma = std::cos(M_PI / 180.0 * gamma_);
     
-    const float v = 1.0 - cdalpha*cdalpha - cdbeta*cdbeta - cdgamma*cdgamma +
-                    2.0 * cdalpha*cdbeta*cdgamma;
+    const double v = 1.0 - calpha*calpha - cbeta*cbeta - cgamma*cgamma +
+                    2.0 * calpha*cbeta*cgamma;
+    if (verbosity_ > 2) {
+    	std::cout << "---> debugging: value of v = " << v << '\n';
+	}
 
-    float c15 = a_*b_*c_*std::sqrt(v);
+    double c15 = a_*b_*c_*std::sqrt(v);
     
     return c15;
-    
 }

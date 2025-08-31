@@ -36,7 +36,7 @@ int MapValues::idx(int j, int k, int l) const {
  * @return 
  */
 double MapValues::in_unitcell(const double& x) const {
-    float X = std::fmod(x, 1.0);
+    double X = std::fmod(x, 1.0);
     if (X < 0) X += 1.0;
     return X;
 }

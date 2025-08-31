@@ -54,6 +54,12 @@ int main(int argc, char** argv) {
         // compute fft
         sxfft myfft(fcfdata, fcfinfo, parser.maptype(), parser.verbosity());
         myfft.fft(parser.weight(), parser.hklgridres());
+	if (parser.verbosity() > 1) {
+		std::string outmap = "my_ascii.map";
+		std::cout << Utils::prompt(2) << "Writing fft data to my " <<
+		outmap << '\n';
+		myfft.asciimap(outmap);
+	}
         
         // create the map for the Cubefile surrounding molecule
         MapValues mapvals(myfft.map(), myfft.gridn1(), myfft.gridn2(), myfft.gridn3(), parser.verbosity());

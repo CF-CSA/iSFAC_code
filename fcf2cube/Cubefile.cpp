@@ -31,7 +31,7 @@
  * @param header
  * @param verbosity
  */
-Cubefile::Cubefile(const ResFile& resfile, const MapValues& mapvals, float margin, short verbosity) :
+Cubefile::Cubefile(const ResFile& resfile, const MapValues& mapvals, double margin, short verbosity) :
 resfile_(resfile),
 mapvals_(mapvals),
 margin_(margin),
