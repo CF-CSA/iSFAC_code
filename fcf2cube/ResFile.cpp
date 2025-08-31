@@ -187,7 +187,7 @@ int ResFile::addsfac(const std::string& sfacvalue) {
     sfacsZ_.push_back(sfacz);
     ++newsfacs;
 
-    float dummy;
+    double dummy;
     conv >> dummy;
     if (conv.good()) return newsfacs;
     conv.clear();
@@ -211,18 +211,37 @@ int ResFile::addsfac(const std::string& sfacvalue) {
  * @return Z for this element
  */
 unsigned int ResFile::sfac2Z(const std::string& sfac) const {
-    char E[3] = "0\0";
-    if (!isupper(sfac.at(0))) {
+    char E[5] = "\0\0\0\0";
+
+    const std::string PSE_firsts = "ABCDEFGHIKLMNOPRSTUVWXYZ";
+    const std::string PSE_seconds = "abcdefghiklmnoprstuyABCDEFGHIKLMNOPRSTUY";
+    if (sfac.empty()) {
         if (verbosity_ > 0) {
             std::cout << Utils::error(1) 
+                    << "Programming error: empty element word " << sfac << "\n";
+        }
+            throw myExcepts::Format("Empty SFAC element\n");
+
+    }
+    char c = sfac.at(0);
+    if (PSE_firsts.find(c) == std::string::npos) {
+        if (verbosity_ > 0) {
+            std::cout << Utils::error(1)
                     << "Illegal Sfac does not start with upper case character: " << sfac << "\n";
-            throw myExcepts::Format("SFAC card not upper case\n");
+        }
+        throw myExcepts::Format("SFAC card not upper case\n");
+
+    } else {
+        E[0] = c;
+    }
+    // in case there is a second character, check if it is valid PSE char
+    if (sfac.length() > 1) {
+        c = sfac.at(1);
+        if (PSE_seconds.find(c) != std::string::npos) {
+            E[1] = std::tolower(c);
         }
     }
-    E[0] = sfac.at(0);
-    if (sfac.length() > 1 && islower(sfac.at(1))) {
-        E[1] = sfac.at(1);
-    }
+
     // search for element in string
     unsigned int Z = 0;
     for (int z = 0; z < PSE::NUM_ELEMENTS; ++z) {
@@ -259,8 +278,8 @@ int ResFile::getxyzs() {
 
         // these should be all options - this should be a atom line
         unsigned short sfac;
-        float x, y, z;
-        float occupancy;
+        double x, y, z;
+        double occupancy;
         std::istringstream conv(it->substr(4));
         conv >> sfac >> x >> y >> z >> occupancy;
         if (conv.fail()) {

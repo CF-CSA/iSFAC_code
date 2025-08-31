@@ -50,8 +50,7 @@ magicFC_({2, 3, 4, 5, 6, 8, 9, 10, 12, 15, 16, 18, 20, 24, 25, 27, 30, 32, 36, 4
     3375, 3456, 3600, 3645, 3750, 3840, 3888, 4000, 4050, 4096, 4320, 4374, 4500,
     4608, 4800, 4860, 5000}),
 maptype_(maptype),
-verbosity_(verbosity),
-centrosymmetric_(false) {
+verbosity_(verbosity) {
     symops_ = fcfinfo_.symops_no_inv();
     if (verbosity_ > 0) {
         std::cout << "---> Setting to standard indices (h>=0, etc)\n"
@@ -61,6 +60,15 @@ centrosymmetric_(false) {
     std::sort(fcfdata_.begin(), fcfdata_.end());
     merge_data();
 
+}
+
+/**
+ * mimic of FORTRAN NINT
+ * @param d
+ * @return 
+ */
+int nint(double d) {
+    return int(d + 0.5);
 }
 
 /**
@@ -78,9 +86,10 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
 
         for (auto sym = symops_.begin(); sym != symops_.end(); sym++) {
             int a, b, c;
-            a = abs((int) (u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0)));
-            b = abs((int) (u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1)));
-            c = abs((int) (u * (*sym)(0, 2) + v * (*sym)(2, 1) + w * (*sym)(2, 2)));
+            a = abs(nint(u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0)));
+            b = abs(nint(u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1)));
+            c = abs(nint(u * (*sym)(0, 2) + v * (*sym)(1, 1) + w * (*sym)(2, 2)));
+            // get maximal indices
             mh = (mh < a) ? a : mh;
             mk = (mk < b) ? b : mk;
             ml = (ml < c) ? c : ml;
@@ -95,6 +104,12 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
     grid_n1_ = magicTop(int(gridresol * mh + .5));
     grid_n2_ = magicTop(int(gridresol * mk + .5));
     grid_n3_ = magicTop(int(gridresol * ml + .5));
+    // for centrosymmetric structures ensure grid_n3_ is an even magic number
+    int i = 0;
+    while ((grid_n3_ % 2) != 0 && fcfinfo_.centrosymmetric()) {
+        grid_n3_ = magicTop(int(gridresol * ml + .5 + i));
+        ++i;
+    }
     if (verbosity_ > 1) {
         std::cout << "---> Preparation of map grid. \n"
                 << "     Original number of gridpoints:         "
@@ -103,9 +118,10 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
                 << "     final ``magic'' number of grid points: "
                 << grid_n1_ << " x " << grid_n2_ << " x " << grid_n3_ << "\n";
     }
-
-    const int n4 = grid_n2_*grid_n1_;
-    const int n5 = grid_n3_*n4;
+    
+    const int n4 = grid_n1_* grid_n2_;
+    // size of map for (complex) fft
+    const int n5 = grid_n1_ * grid_n2_ * grid_n3_;
 
     // define the grid of the map
     const double DX = 1.0 / grid_n1_;
@@ -113,8 +129,9 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
     const double DZ = 1.0 / grid_n3_;
 
     if (verbosity_ > 1) {
-        std::cout << "---> grid steps in x, y, z:"
-                << "   " << std::fixed << std::setprecision(5) << DX << ", " << DY << ", " << DZ << '\n';
+        std::cout << "---> grid steps in x, y, z as inverse of grid:"
+             << "   " << std::fixed << std::setprecision(5) 
+	     << DX << ", " << DY << ", " << DZ << '\n';
     }
 
     /**
@@ -124,8 +141,7 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
 
     // prepare for FFT (kissfft)
 
-    int nbytes;
-    kiss_fft_cpx* B = (kiss_fft_cpx*) KISS_FFT_MALLOC(nbytes = (sizeof (kiss_fft_cpx) * n5));
+    kiss_fft_cpx* B = (kiss_fft_cpx*) KISS_FFT_MALLOC(n5*sizeof(kiss_fft_cpx));
     if (B == NULL) {
         throw std::runtime_error("Cannot allocate memory for KISS FFT");
     }
@@ -137,17 +153,17 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
     // Set up data in B (complex Hermitian) for FFT with KISSFFT
     const double c15 = fcfinfo_.fftscale();
     for (int i = 0; i < fcfdata_.size(); i++) {
-        double u, v, w;
-        u = fcfdata_[i].hkl().h();
-        v = fcfdata_[i].hkl().k();
-        w = fcfdata_[i].hkl().l();
+        // short cuts to data
+        const double u = 1.0*fcfdata_[i].hkl().h();
+        const double v = 1.0*fcfdata_[i].hkl().k();
+        const double w = 1.0*fcfdata_[i].hkl().l();
         double s = 0, t = 0, q, p;
         // count number of symmetry equivalents
         for (auto sym = symops_.begin(); sym != symops_.end(); ++sym) {
 
-            int j = (int) (u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0));
-            int k = (int) (u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1));
-            int l = (int) (u * (*sym)(0, 2) + v * (*sym)(1, 2) + w * (*sym)(2, 2));
+            int j = nint (u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0));
+            int k = nint (u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1));
+            int l = nint (u * (*sym)(0, 2) + v * (*sym)(1, 2) + w * (*sym)(2, 2));
             // (j,k,l) == fcfdata_[i].hkl() ??
             // weighting for identical reflections
             if (HKL(j, k, l) == fcfdata_[i].hkl()) {
@@ -159,18 +175,16 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
                 t += 1.0;
             }
         }
+// #error check for uses of NC (centrosymmetric)
 
-        if (i == 0) {//printf("v%f s%f t%f\n",C[14],s,t);
-            s = 1;
-            t = 0; //f000 
-        }
-        // typ = 0 is difference map, otherwise MFo - (M-1)Fc map
+        // type = 0 is difference map, otherwise MFo - (M-1)Fc map
         if (maptype_ == 0) {
             s = (fcfdata_[i].Imeas() - fcfdata_[i].Fcalc()) / (c15 * (s + t));
         } else {
-            s = (maptype_ * fcfdata_[i].Imeas() - (maptype_ - 1) * fcfdata_[0].Fcalc())
+            s = (1.0*maptype_ * fcfdata_[i].Imeas() - 1.0*(maptype_ - 1) * fcfdata_[0].Fcalc())
                     / (c15 * (s + t));
         }
+        // weighting for positive calculated reflections
         if (fcfdata_[i].Fcalc() > 1.E-6) {
             s = s / (1. + weakWeight * std::pow(fcfdata_[i].sigImeas() / fcfdata_[i].Fcalc(), 4));
         }
@@ -203,9 +217,9 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
             // debug: up to here seems ok
         }
     }
-    
+
     int dims[3];
-    
+
     // note inverse definition - grid_n1_ is for h-index
     dims[0] = grid_n3_;
     dims[1] = grid_n2_;
@@ -345,9 +359,11 @@ void sxfft::asciimap(const std::string outfile) const {
                 << std::endl;
         throw myExcepts::FileIO("Output for ASCII mao");
     }
+    int N = grid_n1_*grid_n2_*grid_n3_;
+    if (centrosymmetric_) N /= 2;
     double scale = 9999.0 / (maxpix_ - minpix_);
 
-    outp << std::setw(5) << (centrosymmetric_ ? 1 : 0)
+    outp << std::setw(5) << (fcfinfo_.centrosymmetric() ? 1 : 0)
             << std::setw(5) << grid_n1_
             << std::setw(5) << grid_n2_
             << std::setw(5) << grid_n3_
@@ -363,6 +379,7 @@ void sxfft::asciimap(const std::string outfile) const {
         for (int i = 0; i < 16; ++i) {
             int val = std::round(scale * (*it - minpix_));
             outp << std::setw(5) << val;
+            if (it == map_.end()) break;
             ++it;
         }
         outp << std::endl;
@@ -376,14 +393,16 @@ void sxfft::asciimap(const std::string outfile) const {
 void sxfft::mapstats() {
     maxpix_ = -std::numeric_limits<double>::infinity();
     minpix_ = std::numeric_limits<double>::infinity();
-    double dm, ds;
+    double dm (0.0), ds(0.0);
     for (auto it = map_.begin(); it != map_.end(); ++it) {
-        if (maxpix_ < *it) maxpix_ = *it;
         if (minpix_ > *it) minpix_ = *it;
+        if (maxpix_ < *it) maxpix_ = *it;
         dm += *it;
         ds += (*it)*(*it);
     }
-    ds = 2.0 * ds / map_.size() - (2.0 * dm / map_.size());
+    double dd = 0.5*map_.size();
+    
+    ds = ds / dd - (dm / dd)*(dm / dd);
     map_mean_ = dm / map_.size();
     map_variance_ = std::sqrt(ds);
 }

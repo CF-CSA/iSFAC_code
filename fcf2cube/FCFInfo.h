@@ -21,8 +21,8 @@
 
 
 class FCFInfo {
-    float a_,b_,c_;
-    float alpha_, beta_, gamma_;
+    double a_,b_,c_;
+    double alpha_, beta_, gamma_;
     double dhighres_;
     double F000_;
     
@@ -31,27 +31,26 @@ class FCFInfo {
     int verbosity_;
     
     std::vector<Int3x3> symops_;
-    bool check_inversion() const;
 
 public:
-    FCFInfo(float a, float b, float c, float alpha_, float beta_, float gamma_,
-            float dhighres, float F000, const std::vector<Int3x3> symops, int verbosity);
+    FCFInfo(double a, double b, double c, double alpha_, double beta_, double gamma_,
+            double dhighres, double F000, const std::vector<Int3x3> symops, int verbosity);
     FCFInfo() = default;
     ~FCFInfo() = default;
     
-    float a() const { return a_; }
-    float b() const { return b_; }
-    float c() const { return c_; }
-    float alpha() const { return alpha_; }
-    float beta() const { return beta_; }
-    float gamma() const { return gamma_; }
-    float dhighres() const { return dhighres_; }
+    double a() const { return a_; }
+    double b() const { return b_; }
+    double c() const { return c_; }
+    double alpha() const { return alpha_; }
+    double beta() const { return beta_; }
+    double gamma() const { return gamma_; }
+    double dhighres() const { return dhighres_; }
     
-    float fftscale() const;
+    double fftscale() const;
     
     std::vector<Int3x3> symops() const { return symops_; }
     // eliminate lattice and inversion operators
-    std::vector<Int3x3> symops_no_inv() const;
+    std::vector<Int3x3> symops_no_inv();
     int nsymops() const { return symops_.size();}
     
     bool centrosymmetric() const { return centrosymmetric_; }

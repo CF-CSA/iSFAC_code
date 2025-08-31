@@ -28,9 +28,9 @@ private:
     short maptype_;
     bool read_qs_;
     //! how much extra of molecule to cover
-    float margin_;
-    float weight_weaks_;
-    float hklgridres_;
+    double margin_;
+    double weight_weaks_;
+    double hklgridres_;
     unsigned short verbosity_;
 
     template <typename T> bool getoption(const std::string& option,
@@ -73,15 +73,15 @@ public:
         return read_qs_;
     }
 
-    float margin() const {
+    double margin() const {
         return margin_;
     }
 
-    float weight() const {
+    double weight() const {
         return weight_weaks_;
     }
 
-    float hklgridres() const {
+    double hklgridres() const {
         return hklgridres_;
     }
 

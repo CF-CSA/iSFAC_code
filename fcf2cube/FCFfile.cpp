@@ -64,13 +64,13 @@ void FCFfile::read_fcfheader(std::ifstream& inp, const double& f000) {
 
     int listcode (-1);
     double Fcalcmax;
-    float F000;
+    double F000;
 
     /*
      *  some initialisations
      */
-    float a, b, c, alpha, beta, gamma;
-    float dhighres = -1.0;
+    double a, b, c, alpha, beta, gamma;
+    double dhighres = -1.0;
     std::vector<Int3x3> symops;
     
     while (! inp.fail() ) {
@@ -174,7 +174,7 @@ void FCFfile::read_fcfdata(std::ifstream& inp) {
     double Imeas; //! actually F^2
     double sigImeas;
     double Fcalc;
-    float  phicalc;
+    double  phicalc;
 
     // finally read the data
     if (verbosity_ > 1) {

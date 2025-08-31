@@ -130,12 +130,12 @@ std::string Utils::error(const unsigned short& verbosity) {
  * @return 
  */
 std::tuple<Vec3, Vec3, Vec3> Utils::unit_cell_vectors(double a, double b, double c, double alpha, double beta, double gamma) {
-    const float salpha = std::sin(alpha * M_PI / 180.0);
-    const float calpha = std::cos(alpha * M_PI / 180.0);
-    const float sbeta  = std::sin(beta  * M_PI / 180.0);
-    const float cbeta  = std::cos(beta  * M_PI / 180.0);
-    const float sgamma = std::sin(gamma * M_PI / 180.0);
-    const float cgamma = std::cos(gamma * M_PI / 180.0);
+    const double salpha = std::sin(alpha * M_PI / 180.0);
+    const double calpha = std::cos(alpha * M_PI / 180.0);
+    const double sbeta  = std::sin(beta  * M_PI / 180.0);
+    const double cbeta  = std::cos(beta  * M_PI / 180.0);
+    const double sgamma = std::sin(gamma * M_PI / 180.0);
+    const double cgamma = std::cos(gamma * M_PI / 180.0);
     Vec3 A = Vec3(a, 0.0, 0.0);
     Vec3 B = Vec3(b*cgamma, b*sgamma, 0);
         double cx = c * cbeta;

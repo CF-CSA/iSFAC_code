@@ -38,14 +38,14 @@ private:
     //! lower left corner of box is origin of map
     Vec3 llc_, urc_;
     Vec3 ex_, ey_, ez_;
-    float margin_;
+    double margin_;
     short verbosity_;
     
     void makemap();
     
 public:
     Cubefile() = delete;
-    Cubefile(const ResFile& resfile, const MapValues& mapvals, float margin, short verbosity);
+    Cubefile(const ResFile& resfile, const MapValues& mapvals, double margin, short verbosity);
     ~Cubefile() = default;
     
     //! mark too close atoms to be skipped
