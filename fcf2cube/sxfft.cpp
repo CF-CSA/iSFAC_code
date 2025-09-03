@@ -386,15 +386,8 @@ void sxfft::mapstats() {
     minpix_ = std::numeric_limits<double>::infinity();
     double dm (0.0), ds(0.0);
     for (auto it = map_.begin(); it != map_.end(); ++it) {
-        if (minpix_ > *it) {
-        if (verbosity_ > 3) {
-            std::cout << "---> Updating minimum pixel value from " << minpix_ << " to " << *it << std::endl;
-        }
-            minpix_ = *it;
-        }
-        if (maxpix_ < *it) {
-                maxpix_ = *it;
-        }
+        minpix_ = std::min(minpix_, *it);
+        maxpix_ = std::max(maxpix_, *it);
         dm += *it;
         ds += (*it)*(*it);
     }
