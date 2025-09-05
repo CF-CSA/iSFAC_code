@@ -42,8 +42,6 @@ class sxfft {
     
     int verbosity_;
     
-    bool centrosymmetric_;
-    
     //! convert to some standard hkls
     void standard_hkl();
     
@@ -63,6 +61,7 @@ public:
     // carry out fft - map data are stored in map_Fo and map_Delta_Fo_Fc
     void fft(const double& weakWeight, const double& gridresol);
     void asciimap(const std::string outfile) const;
+    void datamap(const std::string outfile) const;
     
     std::vector<double> map() const { return map_; }
     int gridn1() const { return grid_n1_; }

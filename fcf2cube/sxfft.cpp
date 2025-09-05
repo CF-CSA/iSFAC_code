@@ -63,15 +63,6 @@ verbosity_(verbosity) {
 }
 
 /**
- * mimic of FORTRAN NINT
- * @param d
- * @return 
- */
-int nint(double d) {
-    return int(d + 0.5);
-}
-
-/**
  * from sxfft.f, with aid from fourxle.cpp (SHELXLE); prepares and carries out
  * FFT for reflection data
  */
@@ -86,9 +77,9 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
 
         for (auto sym = symops_.begin(); sym != symops_.end(); sym++) {
             int a, b, c;
-            a = abs(nint(u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0)));
-            b = abs(nint(u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1)));
-            c = abs(nint(u * (*sym)(0, 2) + v * (*sym)(1, 1) + w * (*sym)(2, 2)));
+            a = abs(std::nearbyint(u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0)));
+            b = abs(std::nearbyint(u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1)));
+            c = abs(std::nearbyint(u * (*sym)(0, 2) + v * (*sym)(1, 2) + w * (*sym)(2, 2)));
             // get maximal indices
             mh = (mh < a) ? a : mh;
             mk = (mk < b) ? b : mk;
@@ -161,9 +152,9 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
         // count number of symmetry equivalents
         for (auto sym = symops_.begin(); sym != symops_.end(); ++sym) {
 
-            int j = nint (u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0));
-            int k = nint (u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1));
-            int l = nint (u * (*sym)(0, 2) + v * (*sym)(1, 2) + w * (*sym)(2, 2));
+            int j = std::nearbyint (u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0));
+            int k = std::nearbyint (u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1));
+            int l = std::nearbyint (u * (*sym)(0, 2) + v * (*sym)(1, 2) + w * (*sym)(2, 2));
             // (j,k,l) == fcfdata_[i].hkl() ??
             // weighting for identical reflections
             if (HKL(j, k, l) == fcfdata_[i].hkl()) {
@@ -352,7 +343,7 @@ int sxfft::magicTop(int j) const {
  * write map data to text file - for comparison with original sxfft.f
  * @param outfile
  */
-void sxfft::asciimap(const std::string outfile) const {
+void sxfft::datamap(const std::string outfile) const {
     std::ofstream outp(outfile);
     if (!outp.is_open()) {
         std::cout << "*** -> Error: cannot open file " << outfile << "for writing"
@@ -360,7 +351,7 @@ void sxfft::asciimap(const std::string outfile) const {
         throw myExcepts::FileIO("Output for ASCII mao");
     }
     int N = grid_n1_*grid_n2_*grid_n3_;
-    if (centrosymmetric_) N /= 2;
+    if (fcfinfo_.centrosymmetric()) N /= 2;
     double scale = 9999.0 / (maxpix_ - minpix_);
 
     outp << std::setw(5) << (fcfinfo_.centrosymmetric() ? 1 : 0)
@@ -395,8 +386,15 @@ void sxfft::mapstats() {
     minpix_ = std::numeric_limits<double>::infinity();
     double dm (0.0), ds(0.0);
     for (auto it = map_.begin(); it != map_.end(); ++it) {
-        if (minpix_ > *it) minpix_ = *it;
-        if (maxpix_ < *it) maxpix_ = *it;
+        if (minpix_ > *it) {
+        if (verbosity_ > 3) {
+            std::cout << "---> Updating minimum pixel value from " << minpix_ << " to " << *it << std::endl;
+        }
+            minpix_ = *it;
+        }
+        if (maxpix_ < *it) {
+                maxpix_ = *it;
+        }
         dm += *it;
         ds += (*it)*(*it);
     }
