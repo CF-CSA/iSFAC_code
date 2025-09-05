@@ -208,6 +208,15 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
             // debug: up to here seems ok
         }
     }
+    if (verbosity_ > 2) {
+        // write data to map
+        std::ofstream outp("B-rawdatafile.txt");
+        for (size_t idx = 0; idx < n5; ++idx) {
+            outp << std::setw(12) << std::setprecision(5) << B[idx].r << '\n';
+        }
+        outp.close();
+        
+    }
 
     int dims[3];
 
@@ -344,6 +353,45 @@ int sxfft::magicTop(int j) const {
  * @param outfile
  */
 void sxfft::datamap(const std::string outfile) const {
+    std::ofstream outp(outfile);
+    if (!outp.is_open()) {
+        std::cout << "*** -> Error: cannot open file " << outfile << "for writing"
+                << std::endl;
+        throw myExcepts::FileIO("Output for ASCII mao");
+    }
+    int N = grid_n1_*grid_n2_*grid_n3_;
+    if (fcfinfo_.centrosymmetric()) N /= 2;
+    double scale = 9999.0 / (maxpix_ - minpix_);
+
+    outp << std::setw(5) << (fcfinfo_.centrosymmetric() ? 1 : 0)
+            << std::setw(5) << grid_n1_
+            << std::setw(5) << grid_n2_
+            << std::setw(5) << grid_n3_
+            << std::setw(12) << std::setprecision(8)
+            << std::fixed << 1. / scale
+            << std::setw(12) << std::setprecision(6) << minpix_
+            << std::setw(12) << std::setprecision(8) << map_variance_
+            << std::endl;
+    // todo: for centrosymmetric map, only write half map to be consistent with 
+    // SXFFT.f
+    for (auto it = map_.begin(); it != map_.end();) {
+        // write 16 integers per line
+        for (int i = 0; i < 16; ++i) {
+            int val = std::round(scale * (*it - minpix_));
+            outp << std::setw(5) << val;
+            if (it == map_.end()) break;
+            ++it;
+        }
+        outp << std::endl;
+    }
+    outp.close();
+}
+
+/**
+ * write map data to text file - for comparison with original sxfft.f
+ * @param outfile
+ */
+void sxfft::asciimap(const std::string outfile) const {
     std::ofstream outp(outfile);
     if (!outp.is_open()) {
         std::cout << "*** -> Error: cannot open file " << outfile << "for writing"
