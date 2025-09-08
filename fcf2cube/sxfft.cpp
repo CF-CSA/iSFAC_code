@@ -209,6 +209,15 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
         }
     }
     if (verbosity_ > 2) {
+        std::cout << "---> Writing data before FFT to data file B-rawdatafile.map \n";
+        std::vector<double> myreal (n5, 0.0);
+        for (size_t idx = 0; idx < n5; ++idx) {
+            myreal[idx] = B[idx].r;
+        }
+        datamap("B-rawdatafile.map", myreal);
+    }
+    
+    if (verbosity_ > 2) {
         // write data to map
         std::ofstream outp("B-rawdatafile.txt");
         for (size_t idx = 0; idx < n5; ++idx) {
@@ -352,7 +361,7 @@ int sxfft::magicTop(int j) const {
  * write map data to text file - for comparison with original sxfft.f
  * @param outfile
  */
-void sxfft::datamap(const std::string outfile) const {
+void sxfft::datamap(const std::string outfile, const std::vector<double>& Br) const {
     std::ofstream outp(outfile);
     if (!outp.is_open()) {
         std::cout << "*** -> Error: cannot open file " << outfile << "for writing"
@@ -374,13 +383,13 @@ void sxfft::datamap(const std::string outfile) const {
             << std::endl;
     // todo: for centrosymmetric map, only write half map to be consistent with 
     // SXFFT.f
-    for (auto it = map_.begin(); it != map_.end();) {
+
+    for (size_t idx = 0; idx < Br.size(); ) {
         // write 16 integers per line
         for (int i = 0; i < 16; ++i) {
-            int val = std::round(scale * (*it - minpix_));
-            outp << std::setw(5) << val;
-            if (it == map_.end()) break;
-            ++it;
+            if (idx >= Br.size()) break;
+            outp << std::setw(5) << Br[idx];
+            ++idx;
         }
         outp << std::endl;
     }
