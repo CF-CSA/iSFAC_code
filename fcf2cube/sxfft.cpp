@@ -97,7 +97,7 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
     grid_n3_ = magicTop(int(gridresol * ml + .5));
     // for centrosymmetric structures ensure grid_n3_ is an even magic number
     int i = 0;
-    while ((grid_n3_ % 2) != 0 && fcfinfo_.centrosymmetric()) {
+    while (fcfinfo_.centrosymmetric() && (grid_n3_ % 2) != 0) {
         grid_n3_ = magicTop(int(gridresol * ml + .5 + i));
         ++i;
     }
@@ -217,16 +217,6 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
         datamap("B-rawdatafile.map", myreal);
     }
     
-    if (verbosity_ > 2) {
-        // write data to map
-        std::ofstream outp("B-rawdatafile.txt");
-        for (size_t idx = 0; idx < n5; ++idx) {
-            outp << std::setw(12) << std::setprecision(5) << B[idx].r << '\n';
-        }
-        outp.close();
-        
-    }
-
     int dims[3];
 
     // note inverse definition - grid_n1_ is for h-index
@@ -388,7 +378,7 @@ void sxfft::datamap(const std::string outfile, const std::vector<double>& Br) co
         // write 16 integers per line
         for (int i = 0; i < 16; ++i) {
             if (idx >= Br.size()) break;
-            outp << std::setw(5) << Br[idx];
+            outp << std::setw(12) << std::setprecision(6) << Br[idx];
             ++idx;
         }
         outp << std::endl;
@@ -422,13 +412,13 @@ void sxfft::asciimap(const std::string outfile) const {
             << std::endl;
     // todo: for centrosymmetric map, only write half map to be consistent with 
     // SXFFT.f
-    for (auto it = map_.begin(); it != map_.end();) {
+    for (size_t idx = 0; idx < N; ) {
         // write 16 integers per line
         for (int i = 0; i < 16; ++i) {
-            int val = std::round(scale * (*it - minpix_));
+            int val = std::round(scale * (map_[idx] - minpix_));
             outp << std::setw(5) << val;
-            if (it == map_.end()) break;
-            ++it;
+            if (idx >= N) break;
+            ++idx;
         }
         outp << std::endl;
     }
