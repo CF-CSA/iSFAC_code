@@ -302,9 +302,9 @@ void sxfft::standard_hkl() {
 
         for (auto itsym = symops_.begin(); itsym != symops_.end(); ++itsym) {
             // original running index: k
-            int nh = (int) (u * (*itsym)(0, 0) + v * (*itsym)(1, 0) + w * (*itsym)(2, 0));
-            int nk = (int) (u * (*itsym)(0, 1) + v * (*itsym)(1, 1) + w * (*itsym)(2, 1));
-            int nl = (int) (u * (*itsym)(0, 2) + v * (*itsym)(1, 2) + w * (*itsym)(2, 2));
+            int nh = std::nearbyint(u * (*itsym)(0, 0) + v * (*itsym)(1, 0) + w * (*itsym)(2, 0));
+            int nk = std::nearbyint(u * (*itsym)(0, 1) + v * (*itsym)(1, 1) + w * (*itsym)(2, 1));
+            int nl = std::nearbyint(u * (*itsym)(0, 2) + v * (*itsym)(1, 2) + w * (*itsym)(2, 2));
 
             double t = 1.0;
 
@@ -327,7 +327,7 @@ void sxfft::standard_hkl() {
                 p = u * (*itsym)(0) + v * (*itsym)(1) + w * (*itsym)(2);
             }
             // we are still in degree, not rad
-            it->phicalc(std::fmod(719.99 + t * std::fmod(q - 360 * p, 360), 360) + 0.01);
+            it->phicalc(std::fmod(719.99 + t * std::fmod(q - 360. * p, 360.), 360.) + 0.01);
         }
         it->hkl(HKL(mh, mk, ml));
     }
