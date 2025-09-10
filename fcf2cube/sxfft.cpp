@@ -332,6 +332,13 @@ void sxfft::standard_hkl() {
         it->hkl(HKL(mh, mk, ml));
     }
 
+    if (verbosity_ > 3) {
+        std::cout << "---> Standardised list of reflections: \n";
+        for (auto d : fcfdata_) {
+            std::cout << d << '\n';
+        }
+    }
+
 }
 
 int sxfft::magicTop(int j) const {
