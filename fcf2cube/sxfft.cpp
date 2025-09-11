@@ -59,6 +59,13 @@ verbosity_(verbosity) {
     standard_hkl();
     std::sort(fcfdata_.begin(), fcfdata_.end());
     merge_data();
+    if (verbosity_ > 3) {
+        std::cout << "---> Merged and sorted list of reflections: \n";
+        for (auto d : fcfdata_) {
+            std::cout << d << '\n';
+        }
+    }
+
 
 }
 
@@ -289,6 +296,7 @@ void sxfft::merge_data() {
  * phases by translational part of symop
  */
 void sxfft::standard_hkl() {
+    
     for (auto it = fcfdata_.begin(); it != fcfdata_.end(); ++it) {
         // original index: i
         double u = it->hkl().h();
@@ -317,7 +325,7 @@ void sxfft::standard_hkl() {
                 t = -1.0;
             }
             // sort by indices to standard order
-            if ((nh < mh) || ((nh == mh)&&(nk < mk)) || ((nh == mh)&&(nk == mk)&&(nl <= ml))) continue;
+            if ((nl < ml) || ((nl == ml)&&(nk < mk)) || ((nl == ml)&&(nk == mk)&&(nh <= mh))) continue;
             mh = nh;
             mk = nk;
             ml = nl;
@@ -331,14 +339,6 @@ void sxfft::standard_hkl() {
         }
         it->hkl(HKL(mh, mk, ml));
     }
-
-    if (verbosity_ > 3) {
-        std::cout << "---> Standardised list of reflections: \n";
-        for (auto d : fcfdata_) {
-            std::cout << d << '\n';
-        }
-    }
-
 }
 
 int sxfft::magicTop(int j) const {
