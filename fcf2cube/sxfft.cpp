@@ -173,7 +173,6 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
                 t += 1.0;
             }
         }
-// #error check for uses of NC (centrosymmetric)
 
         // type = 0 is difference map, otherwise MFo - (M-1)Fc map
         if (maptype_ == 0) {
@@ -188,9 +187,9 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
         }
         for (auto sym = symops_.begin(); sym != symops_.end(); ++sym) {
             int j, k, l, m;
-            j = (int) (u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0));
-            k = (int) (u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1));
-            l = (int) (u * (*sym)(0, 2) + v * (*sym)(1, 2) + w * (*sym)(2, 2));
+            j = std::nearbyint (u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0));
+            k = std::nearbyint (u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1));
+            l = std::nearbyint (u * (*sym)(0, 2) + v * (*sym)(1, 2) + w * (*sym)(2, 2));
             //          q=(-2*M_PI*(u*sy[9][n]+v*sy[10][n]+w*sy[11][n]))-M_PI*(j*DX+k*DY+l*DZ);
             // q seems to fit alright, debugged
             q = (fcfdata_[i].phicalc() - 2 * M_PI * (u * (*sym)(0) + v * (*sym)(1) + w * (*sym)(2))) - M_PI * (j * DX + k * DY + l * DZ);
@@ -240,11 +239,11 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
     if (verbosity_ > 0) {
         std::cout << "---> FFT done. Filling " << n5 << " map points into map\n";
     }
-
-    // map min and max are only used in sxfft.f for scaling the output data when written to a textfile
     for (size_t i = 0; i < n5; i++) {
         map_[i] = B[i].r;
+
     }
+    // map min and max are only used in sxfft.f for scaling the output data when written to a textfile
     // ensure map statistics are being calculated
     mapstats();
     free(B);
