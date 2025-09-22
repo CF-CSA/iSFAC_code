@@ -59,16 +59,14 @@ verbosity_(verbosity) {
     standard_hkl();
     std::sort(fcfdata_.begin(), fcfdata_.end());
     merge_data();
+    if (verbosity_ > 3) {
+        std::cout << "---> Merged and sorted list of reflections: \n";
+        for (auto d : fcfdata_) {
+            std::cout << d << '\n';
+        }
+    }
 
-}
 
-/**
- * mimic of FORTRAN NINT
- * @param d
- * @return 
- */
-int nint(double d) {
-    return int(d + 0.5);
 }
 
 /**
@@ -86,9 +84,9 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
 
         for (auto sym = symops_.begin(); sym != symops_.end(); sym++) {
             int a, b, c;
-            a = abs(nint(u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0)));
-            b = abs(nint(u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1)));
-            c = abs(nint(u * (*sym)(0, 2) + v * (*sym)(1, 1) + w * (*sym)(2, 2)));
+            a = abs(std::nearbyint(u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0)));
+            b = abs(std::nearbyint(u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1)));
+            c = abs(std::nearbyint(u * (*sym)(0, 2) + v * (*sym)(1, 2) + w * (*sym)(2, 2)));
             // get maximal indices
             mh = (mh < a) ? a : mh;
             mk = (mk < b) ? b : mk;
@@ -106,7 +104,7 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
     grid_n3_ = magicTop(int(gridresol * ml + .5));
     // for centrosymmetric structures ensure grid_n3_ is an even magic number
     int i = 0;
-    while ((grid_n3_ % 2) != 0 && fcfinfo_.centrosymmetric()) {
+    while (fcfinfo_.centrosymmetric() && (grid_n3_ % 2) != 0) {
         grid_n3_ = magicTop(int(gridresol * ml + .5 + i));
         ++i;
     }
@@ -161,9 +159,9 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
         // count number of symmetry equivalents
         for (auto sym = symops_.begin(); sym != symops_.end(); ++sym) {
 
-            int j = nint (u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0));
-            int k = nint (u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1));
-            int l = nint (u * (*sym)(0, 2) + v * (*sym)(1, 2) + w * (*sym)(2, 2));
+            int j = std::nearbyint (u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0));
+            int k = std::nearbyint (u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1));
+            int l = std::nearbyint (u * (*sym)(0, 2) + v * (*sym)(1, 2) + w * (*sym)(2, 2));
             // (j,k,l) == fcfdata_[i].hkl() ??
             // weighting for identical reflections
             if (HKL(j, k, l) == fcfdata_[i].hkl()) {
@@ -175,7 +173,6 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
                 t += 1.0;
             }
         }
-// #error check for uses of NC (centrosymmetric)
 
         // type = 0 is difference map, otherwise MFo - (M-1)Fc map
         if (maptype_ == 0) {
@@ -190,9 +187,9 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
         }
         for (auto sym = symops_.begin(); sym != symops_.end(); ++sym) {
             int j, k, l, m;
-            j = (int) (u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0));
-            k = (int) (u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1));
-            l = (int) (u * (*sym)(0, 2) + v * (*sym)(1, 2) + w * (*sym)(2, 2));
+            j = std::nearbyint (u * (*sym)(0, 0) + v * (*sym)(1, 0) + w * (*sym)(2, 0));
+            k = std::nearbyint (u * (*sym)(0, 1) + v * (*sym)(1, 1) + w * (*sym)(2, 1));
+            l = std::nearbyint (u * (*sym)(0, 2) + v * (*sym)(1, 2) + w * (*sym)(2, 2));
             //          q=(-2*M_PI*(u*sy[9][n]+v*sy[10][n]+w*sy[11][n]))-M_PI*(j*DX+k*DY+l*DZ);
             // q seems to fit alright, debugged
             q = (fcfdata_[i].phicalc() - 2 * M_PI * (u * (*sym)(0) + v * (*sym)(1) + w * (*sym)(2))) - M_PI * (j * DX + k * DY + l * DZ);
@@ -217,7 +214,15 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
             // debug: up to here seems ok
         }
     }
-
+    if (verbosity_ > 2) {
+        std::cout << "---> Writing data before FFT to data file B-rawdatafile.map \n";
+        std::vector<double> myreal (n5, 0.0);
+        for (size_t idx = 0; idx < n5; ++idx) {
+            myreal[idx] = B[idx].r;
+        }
+        datamap("B-rawdatafile.map", myreal);
+    }
+    
     int dims[3];
 
     // note inverse definition - grid_n1_ is for h-index
@@ -234,11 +239,11 @@ void sxfft::fft(const double& weakWeight, const double& gridresol) {
     if (verbosity_ > 0) {
         std::cout << "---> FFT done. Filling " << n5 << " map points into map\n";
     }
-
-    // map min and max are only used in sxfft.f for scaling the output data when written to a textfile
     for (size_t i = 0; i < n5; i++) {
         map_[i] = B[i].r;
+
     }
+    // map min and max are only used in sxfft.f for scaling the output data when written to a textfile
     // ensure map statistics are being calculated
     mapstats();
     free(B);
@@ -290,6 +295,7 @@ void sxfft::merge_data() {
  * phases by translational part of symop
  */
 void sxfft::standard_hkl() {
+    
     for (auto it = fcfdata_.begin(); it != fcfdata_.end(); ++it) {
         // original index: i
         double u = it->hkl().h();
@@ -303,9 +309,9 @@ void sxfft::standard_hkl() {
 
         for (auto itsym = symops_.begin(); itsym != symops_.end(); ++itsym) {
             // original running index: k
-            int nh = (int) (u * (*itsym)(0, 0) + v * (*itsym)(1, 0) + w * (*itsym)(2, 0));
-            int nk = (int) (u * (*itsym)(0, 1) + v * (*itsym)(1, 1) + w * (*itsym)(2, 1));
-            int nl = (int) (u * (*itsym)(0, 2) + v * (*itsym)(1, 2) + w * (*itsym)(2, 2));
+            int nh = std::nearbyint(u * (*itsym)(0, 0) + v * (*itsym)(1, 0) + w * (*itsym)(2, 0));
+            int nk = std::nearbyint(u * (*itsym)(0, 1) + v * (*itsym)(1, 1) + w * (*itsym)(2, 1));
+            int nl = std::nearbyint(u * (*itsym)(0, 2) + v * (*itsym)(1, 2) + w * (*itsym)(2, 2));
 
             double t = 1.0;
 
@@ -318,7 +324,7 @@ void sxfft::standard_hkl() {
                 t = -1.0;
             }
             // sort by indices to standard order
-            if ((nh < mh) || ((nh == mh)&&(nk < mk)) || ((nh == mh)&&(nk == mk)&&(nl <= ml))) continue;
+            if ((nl < ml) || ((nl == ml)&&(nk < mk)) || ((nl == ml)&&(nk == mk)&&(nh <= mh))) continue;
             mh = nh;
             mk = nk;
             ml = nl;
@@ -328,11 +334,10 @@ void sxfft::standard_hkl() {
                 p = u * (*itsym)(0) + v * (*itsym)(1) + w * (*itsym)(2);
             }
             // we are still in degree, not rad
-            it->phicalc(std::fmod(719.99 + t * std::fmod(q - 360 * p, 360), 360) + 0.01);
+            it->phicalc(std::fmod(719.99 + t * std::fmod(q - 360. * p, 360.), 360.) + 0.01);
         }
         it->hkl(HKL(mh, mk, ml));
     }
-
 }
 
 int sxfft::magicTop(int j) const {
@@ -352,7 +357,7 @@ int sxfft::magicTop(int j) const {
  * write map data to text file - for comparison with original sxfft.f
  * @param outfile
  */
-void sxfft::asciimap(const std::string outfile) const {
+void sxfft::datamap(const std::string outfile, const std::vector<double>& Br) const {
     std::ofstream outp(outfile);
     if (!outp.is_open()) {
         std::cout << "*** -> Error: cannot open file " << outfile << "for writing"
@@ -360,7 +365,7 @@ void sxfft::asciimap(const std::string outfile) const {
         throw myExcepts::FileIO("Output for ASCII mao");
     }
     int N = grid_n1_*grid_n2_*grid_n3_;
-    if (centrosymmetric_) N /= 2;
+    if (fcfinfo_.centrosymmetric()) N /= 2;
     double scale = 9999.0 / (maxpix_ - minpix_);
 
     outp << std::setw(5) << (fcfinfo_.centrosymmetric() ? 1 : 0)
@@ -374,13 +379,52 @@ void sxfft::asciimap(const std::string outfile) const {
             << std::endl;
     // todo: for centrosymmetric map, only write half map to be consistent with 
     // SXFFT.f
-    for (auto it = map_.begin(); it != map_.end();) {
+
+    for (size_t idx = 0; idx < Br.size(); ) {
         // write 16 integers per line
         for (int i = 0; i < 16; ++i) {
-            int val = std::round(scale * (*it - minpix_));
+            if (idx >= Br.size()) break;
+            outp << std::setw(12) << std::setprecision(6) << Br[idx];
+            ++idx;
+        }
+        outp << std::endl;
+    }
+    outp.close();
+}
+
+/**
+ * write map data to text file - for comparison with original sxfft.f
+ * @param outfile
+ */
+void sxfft::asciimap(const std::string outfile) const {
+    std::ofstream outp(outfile);
+    if (!outp.is_open()) {
+        std::cout << "*** -> Error: cannot open file " << outfile << "for writing"
+                << std::endl;
+        throw myExcepts::FileIO("Output for ASCII mao");
+    }
+    int N = grid_n1_*grid_n2_*grid_n3_;
+    if (fcfinfo_.centrosymmetric()) N /= 2;
+    double scale = 9999.0 / (maxpix_ - minpix_);
+
+    outp << std::setw(5) << (fcfinfo_.centrosymmetric() ? 1 : 0)
+            << std::setw(5) << grid_n1_
+            << std::setw(5) << grid_n2_
+            << std::setw(5) << grid_n3_
+            << std::setw(12) << std::setprecision(8)
+            << std::fixed << 1. / scale
+            << std::setw(12) << std::setprecision(6) << minpix_
+            << std::setw(12) << std::setprecision(8) << map_variance_
+            << std::endl;
+    // todo: for centrosymmetric map, only write half map to be consistent with 
+    // SXFFT.f
+    for (size_t idx = 0; idx < N; ) {
+        // write 16 integers per line
+        for (int i = 0; i < 16; ++i) {
+            int val = std::round(scale * (map_[idx] - minpix_));
             outp << std::setw(5) << val;
-            if (it == map_.end()) break;
-            ++it;
+            if (idx >= N) break;
+            ++idx;
         }
         outp << std::endl;
     }
@@ -395,8 +439,8 @@ void sxfft::mapstats() {
     minpix_ = std::numeric_limits<double>::infinity();
     double dm (0.0), ds(0.0);
     for (auto it = map_.begin(); it != map_.end(); ++it) {
-        if (minpix_ > *it) minpix_ = *it;
-        if (maxpix_ < *it) maxpix_ = *it;
+        minpix_ = std::min(minpix_, *it);
+        maxpix_ = std::max(maxpix_, *it);
         dm += *it;
         ds += (*it)*(*it);
     }

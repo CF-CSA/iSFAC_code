@@ -53,6 +53,7 @@ int main(int argc, char** argv) {
         }
         // compute fft
         sxfft myfft(fcfdata, fcfinfo, parser.maptype(), parser.verbosity());
+
         myfft.fft(parser.weight(), parser.hklgridres());
 	if (parser.verbosity() > 1) {
 		std::string outmap = "my_ascii.map";

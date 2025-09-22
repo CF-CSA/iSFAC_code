@@ -57,8 +57,11 @@ std::vector<Int3x3> FCFInfo::symops_no_inv() {
                             << symops_noinv.size() << '\n'
                             << " u = " << u << '\n'
                             << " v = " << v << '\n'
-                            << *it1 << '\n'
-                            << *it2 << std::endl;
+                            << " replacing \n"
+                            << *it2 
+                            << " with last symmop\n"
+                            << symops_noinv.back()
+                            << std::endl;
 
                 }
                 // do not store it2, replace it with the last entry
@@ -76,7 +79,10 @@ std::vector<Int3x3> FCFInfo::symops_no_inv() {
     }
     if (verbosity_ > 1) {
         std::cout << "---> Elimination of symmetry and inversion operators \n"
-                << "       results in " << "    " << symops_noinv.size() << " rotational operators\n";
+                << "       results in " << "    " << symops_noinv.size() << " rotational operators:\n";
+        for (auto s: symops_noinv) {
+            std::cout << s << '\n';
+        }
     }
     return symops_noinv;
 
