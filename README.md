@@ -1,4 +1,6 @@
 # iSFAC_code
+*Note* This repository has been migrated to codeberg.org, https://codeberg.org/CF-CSA/iSFAC_code
+
 Code used in the preparation of the Manuscript on iSFAC modelling
 - Rscat contains a python script to compute Rscat (Yonekura et al, IUCrJ (2018),
   5, 348-353 https://doi.org/10.1107/S2052252518005237)
